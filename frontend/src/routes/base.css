@@ -1,0 +1,12 @@
+:root {
+    --clr-primary: #663f46;
+    --clr-background: #e8f7ee;
+    --clr-accent: #b8c4bb;
+    --clr-accent-highlight: #c9d6ea;
+    --clr-accent-dark: #3c362a;
+
+    --s4: 4px;
+    --s8: 8px;
+    --s16: 16px;
+    --s32: 32px;
+}
