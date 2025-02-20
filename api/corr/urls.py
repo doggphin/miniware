@@ -2,5 +2,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('photo/', views.corr_photo)
+    path('slides/<str:from_folder>/<str:to_folder>/', views.correct_slides)
 ]

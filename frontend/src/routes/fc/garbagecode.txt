@@ -1,0 +1,73 @@
+/*async function fillFieldsFromURL() {
+    if(sheetsOptions.url == "") {
+        setErrorMessage("Please set the google sheets URL!");
+        return;
+    }
+    if(requiredOptions.mediaType == "") {
+        setErrorMessage("Please set media type!");
+        return;
+    }
+    if(requiredOptions.group == "") {
+        setErrorMessage("Please set the group number to check!");
+        return;
+    }
+
+    setNormalMessage(statusMessage = "Thinking...");
+
+    const baseEndpoint = `${getBackendAddress()}/fc/`;
+    if(!tryParseGoogleSheetsUrlOrError()) { return; }
+    const url = sheetsOptions.url;
+    
+    const clientInfoEndpoint = baseEndpoint + `client_info/${url}/`;
+    const clientInfoResponse = await fetch(clientInfoEndpoint);
+    if(clientInfoResponse.status == 200) {
+        const clientInfoJson = await clientInfoResponse.json();
+        const clientInfoMessage = clientInfoJson["message"];
+        autoFillableOptions.firstName = clientInfoMessage["client_first_name"];
+        autoFillableOptions.lastName = clientInfoMessage["client_last_name"];
+        // Replace the project folder name with the media type being checked
+        const projectFolderName = clientInfoMessage["title"];
+        const [name, _, date] = projectFolderName.split("_");
+        autoFillableOptions.projectFolderName = `${name}_${requiredOptions.mediaType}_${date}`
+    } else {
+        addErrorMessage("Couldn't get client name from sheets!");
+    }
+    
+    const correctedEndpoint = baseEndpoint + `photo_has_corrected/${url}/`;
+    const correctedEndpointResponse = await fetch(correctedEndpoint);
+    if(correctedEndpointResponse.status == 200) {
+        const correctedJson = await correctedEndpointResponse.json();
+        const correctedMessage = correctedJson["message"];
+        console.log(correctedMessage["message"]);
+        autoFillableOptions.hasCorrectedItems = correctedMessage["has_corrected_items"];
+    } else {
+        addErrorMessage("Couldn't get if the project had corrected files from sheets!");
+    }
+    
+    let rowMessage : any = {};
+    switch(requiredOptions.mediaType) {
+        case "Photo":
+            const photoRowEndpoint = baseEndpoint + `photo_info_normal_row/${url}/${parseInt(requiredOptions.group)}`;
+            const photoRowResponse = await fetch(photoRowEndpoint);
+            if(photoRowResponse.status == 200) {
+                const photoRowJson = await photoRowResponse.json();
+                rowMessage = photoRowJson["message"];
+                
+                photoOptions.dpi = rowMessage["dpi"];
+                console.log(photoOptions.dpi);
+                photoOptions.normalScansCount = rowMessage["lp"];
+                photoOptions.handScansCount = rowMessage["hs"];
+                photoOptions.oshScansCount = rowMessage["oshs"];
+                photoOptions.photoType = rowMessage["photo_type"];
+                // Google sheets calls "prints" "print". Rename it here, asking Gwen to fix on google sheets
+                if(photoOptions.photoType == "Print") {
+                    photoOptions.photoType = "Prints";
+                }
+            } else {
+                addErrorMessage("Couldn't get photo row information from sheets!");
+                return;
+            }
+            break;
+    }
+    autoFillableOptions.customGroupFolderName = rowMessage["custom_folder_name"];
+}*/

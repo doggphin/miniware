@@ -134,7 +134,7 @@ def check_photo_row(request, spreadsheet_id : str, group_identifier : str):
         photo_row = PhotoRow()
         photo_row.pull_from_sheet(spreadsheet_id, group_identifier)
 
-        slides_final_checker = photo_row.to_final_check_query()
+        slides_final_checker = photo_row.to_final_check_query(group_identifier)
 
         slides_final_checker.final_check()
         return Response(data={"message" : "All good!"})
