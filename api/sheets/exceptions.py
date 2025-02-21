@@ -1,18 +1,5 @@
 from rest_framework.response import Response
-from abc import ABC, abstractmethod
-
-class CustomException(ABC, Exception):
-    @abstractmethod
-    def get_response(self) -> Response:
-        pass
-
-    def _make_error_response(self, message : str, code : int) -> Response:
-        return Response(
-            data = {
-                "message" : { message },
-            },
-            status = code
-        )
+from mwlocal.helpers import CustomException
 
 
 class NoGroupFound(CustomException):

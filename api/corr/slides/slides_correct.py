@@ -5,61 +5,13 @@ import argparse
 import os
 from PIL import Image
 
+from corr.color_balance import simplest_cb
+
 # To Eric: set these to True or False to enable color and/or crop corrections
 # \/ \/ \/ \/
 DO_COLOR = True
 DO_CROP = True
 # /\ /\ /\ /\
-
-def apply_mask(matrix, mask, fill_value):
-    masked = np.ma.array(matrix, mask=mask, fill_value=fill_value)
-    return masked.filled()
-
-def apply_threshold(matrix, low_value, high_value):
-    low_mask = matrix < low_value
-    matrix = apply_mask(matrix, low_mask, low_value)
-
-    high_mask = matrix > high_value
-    matrix = apply_mask(matrix, high_mask, high_value)
-
-    return matrix
-
-def simplest_cb(img, percent):
-    assert img.shape[2] == 3
-    assert percent > 0 and percent < 100
-
-    half_percent = percent / 200.0
-
-    channels = cv2.split(img)
-
-    out_channels = []
-    for channel in channels:
-        assert len(channel.shape) == 2
-        # find the low and high precentile values (based on the input percentile)
-        height, width = channel.shape
-        vec_size = width * height
-        flat = channel.reshape(vec_size)
-
-        assert len(flat.shape) == 1
-
-        flat = np.sort(flat)
-
-        n_cols = flat.shape[0]
-
-        low_val  = flat[math.floor(n_cols * half_percent)]
-        # Extremely evil bandaid
-        try:
-            high_val = flat[math.ceil( n_cols * (1.0 - half_percent))]
-        except:
-            high_val = flat[math.ceil( n_cols * (1.0 - half_percent)) - 1]
-
-        # saturate below the low percentile and above the high percentile
-        thresholded = apply_threshold(channel, low_val, high_val)
-        # scale the channel
-        normalized = cv2.normalize(thresholded, thresholded.copy(), 0, 255, cv2.NORM_MINMAX)
-        out_channels.append(normalized)
-
-    return cv2.merge(out_channels)
 
 
 # TODO: Fix this to do necessary rotations + flips here
@@ -80,7 +32,6 @@ def order_points(pts):
     return rect
     
 
-# Returns the 
 def correct_slide(from_path: str, to_dir: str) -> str:
     """
     Crops and color-corrects an image of a slide, then saves it to a folder.
@@ -191,26 +142,6 @@ def correct_slide(from_path: str, to_dir: str) -> str:
 
     # Finally, fix DPI of exported image
     pil_image_after = Image.open(to_path)
-    pil_image_after.save(to_path, dpi=(dpi, dpi))
+    pil_image_after.save(to_path, dpi=(dpi, dpi), subsampling=0, quality=95)
 
     return to_path
-
-
-def correct_all_slides_in_folder(from_folder_path: str, to_folder_path: str):
-    all_files = sorted(os.listdir(from_folder_path))
-    print(all_files)
-    for i, file in enumerate(all_files):
-        path = f"{from_folder_path}/{file}"
-        saved_to_path = correct_slide(path, to_folder_path)
-        print(f"Corrected {i + 1}/{len(all_files)} (Saved to {saved_to_path})")
-
-
-'''
-parser = argparse.ArgumentParser()
-parser.add_argument("from_folder", type=str, help="path to uncorrected slide image file")
-parser.add_argument("to_folder", type=str, help="path to folder to which corrected image file will be stored")
-args = parser.parse_args()
-print(args.from_folder)
-print(args.to_folder)
-correct_all_slides_in_folder(args.from_folder, args.to_folder)
-'''

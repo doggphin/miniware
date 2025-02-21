@@ -11,7 +11,7 @@
         statusMessage = newStatusMessage;
     }
 
-    const mediaTypeOptions = ["Slides"]
+    const mediaTypeOptions = ["Slides", "Prints"]
     const corrState = $state({
         mediaType : "",
         fromFolder : "",
@@ -19,7 +19,6 @@
     });
 
     async function correctSlides() {
-        console.log("media type");
         if(corrState.fromFolder == "") {
             statusMessage = StatusMessage.fieldNotSetErrorMessage("From Folder");
             return;
@@ -37,6 +36,24 @@
     }
 
 
+    async function correctPrints() {
+        if(corrState.fromFolder == "") {
+            statusMessage = StatusMessage.fieldNotSetErrorMessage("From Folder");
+            return;
+        }
+        if(corrState.toFolder == "") {
+            statusMessage = StatusMessage.fieldNotSetErrorMessage("To Folder");
+            return;
+        }
+
+        const sanitizedFromFolder = sanitizePartOfURI(corrState.fromFolder);
+        const sanitizedToFolder = sanitizePartOfURI(corrState.toFolder);
+
+        const endpoint = `corr/prints/${sanitizedFromFolder}/${sanitizedToFolder}/`;
+        makeBackendCall(endpoint, setStatusMessage, "POST");
+    }
+
+
     async function noMediaTypeSelected() {
         console.log("no media type");
         statusMessage = StatusMessage.errorMessage("Invalid media type selected!");
@@ -45,6 +62,7 @@
 
     const mediaTypeToCorrectionDelegate : Record<string, () => void> = {
         "Slides" : correctSlides,
+        "Prints" : correctPrints,
     }
 
 
