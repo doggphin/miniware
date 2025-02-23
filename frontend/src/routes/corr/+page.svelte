@@ -11,14 +11,13 @@
         statusMessage = newStatusMessage;
     }
 
-    const mediaTypeOptions = ["Slides", "Prints"]
     const corrState = $state({
         mediaType : "",
         fromFolder : "",
         toFolder : ""
     });
-
-    async function correctSlides() {
+    
+    async function makeCorrectRequest(mediaType : string) {
         if(corrState.fromFolder == "") {
             statusMessage = StatusMessage.fieldNotSetErrorMessage("From Folder");
             return;
@@ -31,38 +30,20 @@
         const sanitizedFromFolder = sanitizePartOfURI(corrState.fromFolder);
         const sanitizedToFolder = sanitizePartOfURI(corrState.toFolder);
 
-        const endpoint = `corr/slides/${sanitizedFromFolder}/${sanitizedToFolder}/`;
-        makeBackendCall(endpoint, setStatusMessage, "POST");
-    }
-
-
-    async function correctPrints() {
-        if(corrState.fromFolder == "") {
-            statusMessage = StatusMessage.fieldNotSetErrorMessage("From Folder");
-            return;
-        }
-        if(corrState.toFolder == "") {
-            statusMessage = StatusMessage.fieldNotSetErrorMessage("To Folder");
-            return;
-        }
-
-        const sanitizedFromFolder = sanitizePartOfURI(corrState.fromFolder);
-        const sanitizedToFolder = sanitizePartOfURI(corrState.toFolder);
-
-        const endpoint = `corr/prints/${sanitizedFromFolder}/${sanitizedToFolder}/`;
+        const endpoint = `corr/${mediaType}/${sanitizedFromFolder}/${sanitizedToFolder}/`;
         makeBackendCall(endpoint, setStatusMessage, "POST");
     }
 
 
     async function noMediaTypeSelected() {
-        console.log("no media type");
         statusMessage = StatusMessage.errorMessage("Invalid media type selected!");
     }
 
 
     const mediaTypeToCorrectionDelegate : Record<string, () => void> = {
-        "Slides" : correctSlides,
-        "Prints" : correctPrints,
+        "Slides" : () => makeCorrectRequest("slides"),
+        "Prints" : () => makeCorrectRequest("prints"),
+        "Audio" : () => makeCorrectRequest("audio"),
     }
 
 
@@ -76,7 +57,7 @@
 
 <Section title="Correct Media">
     <ol>
-        <li>Media Type: <OptionsField bind:optionState={corrState.mediaType} options={mediaTypeOptions} unselectedText="Media Type"/></li>
+        <li>Media Type: <OptionsField bind:optionState={corrState.mediaType} options={Object.keys(mediaTypeToCorrectionDelegate)} unselectedText="Media Type"/></li>
         <li>From Folder: <InputField bind:inputState={corrState.fromFolder}/></li>
         <li>To Folder: <InputField bind:inputState={corrState.toFolder}/></li>
     </ol>

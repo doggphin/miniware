@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List, Tuple
 import cv2
 from PIL import Image
 
@@ -7,7 +7,7 @@ from corr.color_balance import simplest_cb
 PERCENT_TO_CROP = 1
 
 
-def correct_print(from_path: str, to_dir: str) -> str:
+def correct_print(from_path: str, to_dir: str, _: dict[str, any]) -> List[str]:
     file_name = from_path.split("/")[-1]
     to_path = f"{to_dir}/{file_name}"
 
@@ -32,4 +32,4 @@ def correct_print(from_path: str, to_dir: str) -> str:
     pil_image = Image.open(to_path)
     pil_image.save(to_path, dpi=(dpi, dpi), subsampling=0, quality=95)
 
-    return to_path
+    return [to_path]

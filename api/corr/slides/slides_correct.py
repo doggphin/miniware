@@ -1,3 +1,4 @@
+from typing import List
 import cv2
 import numpy as np
 import math
@@ -12,6 +13,10 @@ from corr.color_balance import simplest_cb
 DO_COLOR = True
 DO_CROP = True
 # /\ /\ /\ /\
+
+# How far will colors be considered to be background?
+# Should be set somewhere between 15-25
+BACKGROUND_CROPPING_AGGRESSION = 16
 
 
 # TODO: Fix this to do necessary rotations + flips here
@@ -32,7 +37,7 @@ def order_points(pts):
     return rect
     
 
-def correct_slide(from_path: str, to_dir: str) -> str:
+def correct_slide(from_path: str, to_dir: str, _: dict[str, any]) -> List[str]:
     """
     Crops and color-corrects an image of a slide, then saves it to a folder.
 
@@ -58,7 +63,7 @@ def correct_slide(from_path: str, to_dir: str) -> str:
             tuple(image[offset, width // 2]),
             tuple(image[height // 2, offset])
         ]
-        threshhold = 20
+        threshhold = BACKGROUND_CROPPING_AGGRESSION
 
         output_image = np.ones_like(image) * 0
 
@@ -144,4 +149,4 @@ def correct_slide(from_path: str, to_dir: str) -> str:
     pil_image_after = Image.open(to_path)
     pil_image_after.save(to_path, dpi=(dpi, dpi), subsampling=0, quality=95)
 
-    return to_path
+    return [to_path]

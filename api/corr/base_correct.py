@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import os
 from typing import Callable, List
 
+from corr.correction_problem import CorrectionProblem
 from corr.exceptions import FolderNotFound
 
 
@@ -10,9 +11,9 @@ class BaseCorrector:
     from_folder_path : str
     to_folder_path : str
     expected_extensions : List[str]
-    correct_file_delegate : Callable[[str, str], str]
+    correct_file_delegate : Callable[[str, str, dict[str, any]], str]
 
-    def correct_all_files(this):
+    def correct_all_files(this, args : dict[str, any] = None):
         """Corrects all files in from_folder_path, saving the results to to_folder_path."""
         for folder in [this.from_folder_path, this.to_folder_path]:
             if not (os.path.exists(folder)):
@@ -31,8 +32,17 @@ class BaseCorrector:
             if file_extension not in this.expected_extensions:
                 print(f"{full_file_path}'s extension \"{file_extension}\" was not one of {this.expected_extensions})! Skipping it!")
                 continue
-
-            saved_to_path = this.correct_file_delegate(full_file_path, this.to_folder_path)
-            print(f"Corrected {file_name}, saved to {saved_to_path} ({i + 1}/{len(files_to_correct)})")
+            
+            try:
+                saved_output_file_paths = this.correct_file_delegate(full_file_path, this.to_folder_path, args)
+            except CorrectionProblem as e:
+                print(f"Error correcting {file_name}: {e.get_problem}")
+            
+            outputs_str = ""
+            for j, output_file_path in enumerate(saved_output_file_paths):
+                outputs_str += output_file_path if j == 0 else f" and {output_file_path}"
+            
+            for saved_output_file_path in saved_output_file_paths:
+                print(f"Corrected {file_name}, saved to {outputs_str} ({i + 1}/{len(files_to_correct)})")
         
         print("All done!")
