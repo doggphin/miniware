@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .fc.slides import (PhotoFinalCheckQuery, PhotoMediaType)
+from .fc.prints import (PhotoFinalCheckQuery, PhotoMediaType)
 from sheets.sheets_requests import (SheetsRequest, SheetsResponse, RangeRequest)
 from sheets.exceptions import (
     CustomException,

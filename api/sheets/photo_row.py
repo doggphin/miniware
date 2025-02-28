@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Dict, List
 from rest_framework.response import Response
 
-from fc.fc.slides import PhotoFinalCheckQuery, PhotoMediaType
+from fc.fc.prints import PhotoFinalCheckQuery, PhotoMediaType
 from .sheets_requests import (
     SheetsRequest,
     RangeRequest

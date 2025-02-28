@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from typing import Callable, List
 
-from corr.correction_problem import CorrectionProblem
+from corr.correction_problem import GenericProblem
 from corr.exceptions import FolderNotFound
 
 
@@ -35,7 +35,7 @@ class BaseCorrector:
             
             try:
                 saved_output_file_paths = this.correct_file_delegate(full_file_path, this.to_folder_path, args)
-            except CorrectionProblem as e:
+            except GenericProblem as e:
                 print(f"Error correcting {file_name}: {e.get_problem}")
             
             outputs_str = ""

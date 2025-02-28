@@ -5,18 +5,42 @@ import numpy as np
 from pydub import AudioSegment
 import soundfile as sf
 
-from corr.correction_problem import CorrectionProblem
+from corr.correction_problem import GenericProblem
 
 MIN_ALLOWED_BURST_OF_AUDIO_DURING_SILENCE_SECONDS = 1
 CLIPPED_AUDIO_PADDING_SECONDS = 3
+QUIET_THRESHHOLD = 30
+
+FINAL_DBFS = -3 
 
 
 import numpy as np
 
 
-def clip_and_normalize_audio(y : np.ndarray, sr : int) -> Tuple[np.ndarray, int]:
+def get_peak_amplitude(y : np.ndarray) -> Tuple[float, bool]:
+    """
+    Returns the peak amplitude, and whether the audio should be hard clipped at all.
+    """
+    loudish_amplitude = np.percentile(np.abs(y), 90)
+    spikes_amplitude = np.percentile(np.abs(y), 99)
+    print(f"loudish at {loudish_amplitude}, spikes at {spikes_amplitude}")
+    has_loud_peaks = spikes_amplitude > loudish_amplitude * 3
+
+    peak = spikes_amplitude if has_loud_peaks else np.max(np.abs(y))
+    return [peak, has_loud_peaks]
+
+
+def hard_limit(y : np.ndarray, threshhold : float) -> np.ndarray:
+    return np.clip(y, -threshhold, threshhold)
+    # y[peaks] = np.sign(y[peaks]) * (threshhold + (np.abs(y[peaks])) - threshhold) * ratio
+
+
+def get_start_and_end(y : np.ndarray, sr : int) -> Tuple[int, int]:
+    """
+    Finds where a track starts and ends, plus some padding. Returns None if the audio is blank.
+    """
     # Detect non-silent intervals
-    intervals = librosa.effects.split(y, top_db=40)
+    intervals = librosa.effects.split(y, top_db=30)
 
     # Filter out all the intervals shorter than the minimum duration
     min_duration_samples = int(MIN_ALLOWED_BURST_OF_AUDIO_DURING_SILENCE_SECONDS * sr)
@@ -33,40 +57,44 @@ def clip_and_normalize_audio(y : np.ndarray, sr : int) -> Tuple[np.ndarray, int]
         track_end = filtered_intervals[-1][1]
         track_end = min(len(y), filtered_intervals[-1][1] + margin_samples)
 
-        # Trim the audio
-        y_trimmed = y[track_start:track_end]
-        return [y_trimmed, sr]
-    else:
-        print("No non-silent interval longer than the threshold was found.")
-        return None
+        return [track_start, track_end]
+    
+    return None
 
 
 def audio_correct(from_path: str, to_dir: str, args: dict[str, any]) -> List[str]:
     file_name = from_path.split("/")[-1]
     file_name, file_extension = file_name.split(".")
 
-    if "R2R" in file_name.split("_"):
-        # Run following code on both the L and R track of the audio file at from_path
-        pass
-    
-    to_path = f"{to_dir}/{file_name}"
+    #if "R2R" in file_name.split("_"):
+    #    y_stereo, sr = librosa.load(from_path, sr = None, mono = False)
+    #    # Run following code on both the L and R track of the audio file at from_path
+    #    pass
 
     # Load the audio file
     y, sr = librosa.load(from_path, sr=None)
 
     # Clip silence from ends of audio
-    clipped_and_normalized = clip_and_normalize_audio(y, sr)
-    if clipped_and_normalized == None:
-        raise CorrectionProblem("Blank audio file")
+    start_and_end = get_start_and_end(y, sr)
+    if start_and_end == None:
+        raise GenericProblem("Blank audio file") 
+    y = y[start_and_end[0]:start_and_end[1]]
 
-    y, sr = clip_and_normalize_audio(y, sr)
+    # Lower audio at peaks
+    peak_amplitude, should_hard_limit = get_peak_amplitude(y)
 
-    # Normalize audio
-    y = librosa.util.normalize(y)
+    peak_db = 20 * np.log10(peak_amplitude)
+    gain = 10 ** ((FINAL_DBFS - peak_db) / 20)
+    y = y * gain
 
-    audio_normalized_int = (y * 32767).astype(np.int16)
+    if(should_hard_limit):
+        print(f"Hard limited at {peak_db}!")
+        y = hard_limit(y, peak_amplitude)
+    else:
+        print("Did not hard limit!")
 
     # Save the trimmed audio as a temporary WAV file
+    audio_normalized_int = (y * 32767).astype(np.int16)
     wav_buffer = io.BytesIO()
     sf.write(wav_buffer, audio_normalized_int, sr, format='WAV')
     wav_buffer.seek(0)
