@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import json
-from requests import Response
+from rest_framework.response import Response
 
 with open("names_to_drives.json", 'r') as file:
     NAMES_TO_DRIVES = json.load(file)

@@ -37,7 +37,7 @@ def order_points(pts):
     return rect
     
 
-def correct_slide(from_path: str, to_dir: str, _: dict[str, any]) -> List[str]:
+def correct_slide(from_path: str, to_dir: str) -> List[str]:
     """
     Crops and color-corrects an image of a slide, then saves it to a folder.
 
@@ -46,8 +46,9 @@ def correct_slide(from_path: str, to_dir: str, _: dict[str, any]) -> List[str]:
 
     :returns: The name of the path saved to.
     """
-    file_name = from_path.split("/")[-1]
-    to_path = f"{to_dir}/{file_name}"
+    file_name, file_extension = os.path.splitext(os.path.basename(from_path))
+    to_path = os.path.join(to_dir, f"{file_name}{file_extension}")
+    # to_path = f"{to_dir}/{file_name}"
     
     image = cv2.imread(from_path)
     pil_image = Image.open(from_path)

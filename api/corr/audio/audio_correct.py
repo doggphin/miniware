@@ -1,4 +1,6 @@
+import gc
 import io
+import os
 from typing import List, Tuple
 import librosa
 import numpy as np
@@ -7,6 +9,11 @@ import soundfile as sf
 
 from corr.correction_problem import GenericProblem
 
+"""
+    - Loading as many 30-120 minute .WAV files as the server has cores is incredibly memory intensive.
+    It's a little excessive, but all the gc.collect() calls are to help reduce memory usage.
+"""
+
 MIN_ALLOWED_BURST_OF_AUDIO_DURING_SILENCE_SECONDS = 1
 CLIPPED_AUDIO_PADDING_SECONDS = 3
 QUIET_THRESHHOLD = 30
@@ -14,8 +21,9 @@ QUIET_THRESHHOLD = 30
 FINAL_DBFS = -3 
 
 
-def adaptive_hard_clip(y: np.ndarray, clip_factor: float = 1.66) -> Tuple[np.ndarray, bool]:
-    """If spikes are detected, clips all loud sounds at 99.98th percentile of audio."""
+def adaptive_hard_clip(y: np.ndarray, clip_factor: float = 1.66) -> bool:
+    """Mutates audio passed in.
+    If spikes are detected, clips all loud sounds at 99.98th percentile of audio."""
     # Compute the 90th and 99th percentile levels
     loudish = np.percentile(np.abs(y), 99)
     spike_level = np.percentile(np.abs(y), 99.98)
@@ -25,11 +33,11 @@ def adaptive_hard_clip(y: np.ndarray, clip_factor: float = 1.66) -> Tuple[np.nda
     if spike_level > loudish * clip_factor:
         print(f"Significant spikes detected. Clipping values above {spike_level}.")
         # Only modify samples that exceed the 99th percentile.
-        y_clipped = np.where(np.abs(y) > spike_level, np.sign(y) * spike_level, y)
-        return y_clipped, True
+        y = np.where(np.abs(y) > spike_level, np.sign(y) * spike_level, y)
+        return True
     else:
         print("No significant spikes detected. No clipping applied.")
-        return y, False
+        return False
 
 
 def compute_gain(y: np.ndarray, target_dbfs: float) -> float:
@@ -61,9 +69,9 @@ def get_start_and_end(y: np.ndarray, sr: int) -> Tuple[int, int]:
 
     return None
 
-def audio_correct(from_path: str, to_dir: str, args: dict[str, any]) -> List[str]:
-    file_name = from_path.split("/")[-1]
-    file_name, file_extension = file_name.split(".")
+def correct_audio(from_path: str, to_dir: str) -> List[str]:
+    file_name, file_extension = os.path.splitext(os.path.basename(from_path))
+    to_path = os.path.join(to_dir, f"{file_name}.mp3")
 
     # Load the audio file in stereo (preserving channels)
     y, sr = librosa.load(from_path, sr=None, mono=False)
@@ -73,9 +81,13 @@ def audio_correct(from_path: str, to_dir: str, args: dict[str, any]) -> List[str
         y_mono = librosa.to_mono(y)
     else:
         y_mono = y
+    start_and_end = get_start_and_end(y_mono, sr)
 
     # Trim silence from the beginning and end using the mono version
-    start_and_end = get_start_and_end(y_mono, sr)
+    # After that, we don't need y_mono anymore, so collect it
+    del y_mono
+    gc.collect()
+
     if start_and_end is None:
         raise GenericProblem("Blank audio file")
     start, end = start_and_end
@@ -90,33 +102,43 @@ def audio_correct(from_path: str, to_dir: str, args: dict[str, any]) -> List[str
     if y.ndim == 2:
         processed_channels = []
         for channel in y:
-            channel_clipped, _ = adaptive_hard_clip(channel)
-            gain = compute_gain(channel_clipped, FINAL_DBFS)
-            processed_channel = np.clip(channel_clipped * gain, -1.0, 1.0)
-            processed_channels.append(processed_channel)
+            _ = adaptive_hard_clip(channel)    # Clip channel
+            gain = compute_gain(channel, FINAL_DBFS)
+            channel = np.clip(channel * gain, -1.0, 1.0)  # Process channel
+            processed_channels.append(channel)
         # Recombine channels (resulting array shape: (n_channels, n_samples))
-        y_processed = np.vstack(processed_channels)
+        y = np.vstack(processed_channels)
     else:
-        y_clipped, _ = adaptive_hard_clip(y)
-        gain = compute_gain(y_clipped, FINAL_DBFS)
-        y_processed = np.clip(y_clipped * gain, -1.0, 1.0)
+        _ = adaptive_hard_clip(y)
+        gain = compute_gain(y, FINAL_DBFS)
+        y = np.clip(y * gain, -1.0, 1.0)
 
     # Convert to 16-bit PCM and save as a temporary WAV file.
     # For stereo audio, soundfile expects shape (n_samples, n_channels)
-    if y_processed.ndim == 2:
-        audio_normalized_int = (y_processed.T * 32767).astype(np.int16)
+    if y.ndim == 2:
+        audio_normalized_int = (y.T * 32767).astype(np.int16)
     else:
-        audio_normalized_int = (y_processed * 32767).astype(np.int16)
+        audio_normalized_int = (y * 32767).astype(np.int16)
+
+    # Clean up y since we don't need it anymore
+    del y
+    gc.collect()
 
     wav_buffer = io.BytesIO()
     sf.write(wav_buffer, audio_normalized_int, sr, format='WAV')
     wav_buffer.seek(0)
 
+    # clean up audio_normalized_int since we aren't using it anymore
+    del audio_normalized_int
+    gc.collect()
+
     # Load the WAV file with pydub and export as MP3
     pydub_wav = AudioSegment.from_wav(wav_buffer)
-    to_path_mp3 = f"{to_dir}/{file_name}.mp3"
     # Optionally specify a bitrate, e.g., bitrate="320k", if needed.
-    pydub_wav.export(to_path_mp3, format="mp3")
-    print(f"Processed audio saved as {to_path_mp3}.")
+    pydub_wav.export(to_path, format="mp3")
+    print(f"Processed audio saved as {to_path}.")
 
-    return [to_path_mp3]
+    del wav_buffer, pydub_wav
+    gc.collect()
+
+    return [to_path]

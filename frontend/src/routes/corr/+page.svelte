@@ -14,10 +14,19 @@
     const corrState = $state({
         mediaType : "",
         fromFolder : "",
-        toFolder : ""
+        toFolder : "",
+
+        baseFolder : ""
     });
     
     async function makeCorrectRequest(mediaType : string) {
+        if(mediaType == "all") {
+            const sanitizedBaseFolder = sanitizePartOfURI(corrState.baseFolder);
+            const endpoint = `corr/all/${sanitizedBaseFolder}/`;
+            makeBackendCall(endpoint, setStatusMessage, "POST");
+            return;
+        }
+
         if(corrState.fromFolder == "") {
             statusMessage = StatusMessage.fieldNotSetErrorMessage("From Folder");
             return;
@@ -44,6 +53,7 @@
         "Slides" : () => makeCorrectRequest("slides"),
         "Prints" : () => makeCorrectRequest("prints"),
         "Audio" : () => makeCorrectRequest("audio"),
+        "Everything" : () => makeCorrectRequest("all")
     }
 
 
@@ -58,8 +68,12 @@
 <Section title="Correct Media">
     <ol>
         <li>Media Type: <OptionsField bind:optionState={corrState.mediaType} options={Object.keys(mediaTypeToCorrectionDelegate)} unselectedText="Media Type"/></li>
-        <li>From Folder: <InputField bind:inputState={corrState.fromFolder}/></li>
-        <li>To Folder: <InputField bind:inputState={corrState.toFolder}/></li>
+        {#if corrState.mediaType != "Everything"}
+            <li>From Folder: <InputField bind:inputState={corrState.fromFolder}/></li>
+            <li>To Folder: <InputField bind:inputState={corrState.toFolder}/></li>
+        {:else}
+            <li>Project folder: <InputField bind:inputState={corrState.baseFolder}/></li>
+        {/if}
     </ol>
     <button onclick={correct}>
         Correct!

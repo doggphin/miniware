@@ -1,3 +1,4 @@
+import os
 from typing import List, Tuple
 import cv2
 from PIL import Image
@@ -7,9 +8,9 @@ from corr.color_balance import simplest_cb
 PERCENT_TO_CROP = 1
 
 
-def correct_print(from_path: str, to_dir: str, _: dict[str, any]) -> List[str]:
-    file_name = from_path.split("/")[-1]
-    to_path = f"{to_dir}/{file_name}"
+def correct_print(from_path: str, to_dir: str) -> List[str]:
+    file_name, file_extension = os.path.splitext(os.path.basename(from_path))
+    to_path = os.path.join(to_dir, f"{file_name}{file_extension}")
 
     # Save DPI for later
     pil_image = Image.open(from_path)
