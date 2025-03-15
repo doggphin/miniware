@@ -53,6 +53,7 @@
         "Slides" : () => makeCorrectRequest("slides"),
         "Prints" : () => makeCorrectRequest("prints"),
         "Audio" : () => makeCorrectRequest("audio"),
+        "VHS" : () => makeCorrectRequest("vhs"),
         "Everything" : () => makeCorrectRequest("all")
     }
 
