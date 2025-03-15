@@ -53,11 +53,11 @@ def compute_gain(y: np.ndarray, target_dbfs: float) -> float:
     return gain
 
 
-def get_start_and_end(y: np.ndarray, sr: int) -> Tuple[int, int]:
+def get_start_and_end(y: np.ndarray, sr: int, top_db : int = 30) -> Tuple[int, int]:
     """
     Finds where a track starts and ends (with some padding). Returns None if the audio is blank.
     """
-    intervals = librosa.effects.split(y, top_db=30)
+    intervals = librosa.effects.split(y, top_db=top_db)
     min_duration_samples = int(MIN_ALLOWED_BURST_OF_AUDIO_DURING_SILENCE_SECONDS * sr)
     filtered_intervals = [interval for interval in intervals if (interval[1] - interval[0]) >= min_duration_samples]
 

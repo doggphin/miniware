@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, Dict, List
 
 import concurrent
 
@@ -10,6 +10,7 @@ from corr.exceptions import FolderNotFound, NoRawFolderToCorrectFrom
 from corr.audio.audio_correct import correct_audio
 from corr.prints.prints_correct import correct_print
 from corr.slides.slides_correct import correct_slide
+from corr.video.vhs_correct import correct_vhs
 
 @dataclass
 class CorrectTask:
@@ -111,14 +112,18 @@ class CompleteCorrector:
 
                 correct_file_delegate : Callable[[str, str], str] = None
 
+                # Convert the file extension and naming of the file into 
+                file_name_lower = file_name.lower()
                 if file_extension == ".wav" or file_extension == ".mp3":
                     correct_file_delegate = correct_audio
                 elif file_extension == ".png" or file_extension == ".jpg" or file_extension == ".jpeg" or file_extension == ".tif":
-                    if "prints" in file_name.lower():
+                    if "_prints_" in file_name_lower:
                         correct_file_delegate = correct_print
-                    elif "slides" in file_name.lower():
+                    elif "_slides_" in file_name_lower:
                         correct_file_delegate = correct_slide
-                
+                elif file_extension == ".mp4":
+                    correct_file_delegate = correct_vhs
+
                 if correct_file_delegate != None:
                     task = CompleteCorrectTask(
                         abs_file_path,
