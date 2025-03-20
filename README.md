@@ -4,20 +4,33 @@ This project serves as a temporary alternative to MemoryWare while it's still in
 
 ---
 
+## Pre-Setup instructions
+
+Install the following:
+
+- [Python 3.12.6](https://www.python.org/downloads/release/python-3126/)
+- [Node.js](https://nodejs.org/en)
+- [Git](https://git-scm.com/downloads)
+- [FFmpeg](https://community.chocolatey.org/packages/ffmpeg)
+
+Then make a copy of MiniWare on your computer by opening a terminal and running the command:
+```
+git clone https://github.com/doggphin/miniware.git
+```
+
 ## Setup Instructions
 
-### 1. Install Dependencies
+- Run `install.bat` on Windows or `install.sh` on Linux to do install dependencies (only required once).
 
-#### Windows:
-- Run `install.bat` to install all required dependencies.
+- Run `start.bat` on Windows or `start.sh` on Linux to start MiniWare.
 
-#### Linux:
-- Run `install.sh` to install all required dependencies.
+## Update Instructions
 
-### 2. Start the Project
+- Open a terminal in the MiniWare folder.
 
-#### Windows:
-- Run `start.bat` to start the project.
+- Run the command:
+```
+git pull
+```
 
-#### Linux:
-- Run `start.sh` to start the project.
+- Run `install.bat` on Windows or `install.sh` on Linux to finish installing any updates.

@@ -31,7 +31,6 @@
     :root {
         background-color: var(--clr-background);
         --navbar-height: 64px;
-        --centered-content-size: max(66%, 500px);
         color: var(--clr-primary);
     }
     .logo {

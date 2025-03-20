@@ -1,18 +1,22 @@
 <script lang="ts">
+    import TitledComponent from "./TitledComponent.svelte";
+
     interface Props {
+        title : string
         options : Array<any>
         unselectedText : any
         optionState : any
     }
 
-    let { options, unselectedText, optionState: optionState = $bindable() } : Props = $props();
+    let { title, options, unselectedText, optionState: optionState = $bindable() } : Props = $props();
 </script>
 
 
-
-<select bind:value={optionState}>
-    <option value="" selected disabled hidden> {unselectedText} </option>
-    {#each options as option}
-        <option value={option}>{option}</option>
-    {/each}
-</select>
+<TitledComponent title={title}>
+    <select bind:value={optionState}>
+        <option value="" selected disabled hidden> {unselectedText} </option>
+        {#each options as option}
+            <option value={option}>{option}</option>
+        {/each}
+    </select>
+</TitledComponent>

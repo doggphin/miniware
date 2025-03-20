@@ -1,11 +1,14 @@
 <script lang="ts">
+    import TitledComponent from "./TitledComponent.svelte";
     interface Props {
+        title : string,
         enabledState : boolean
     }
 
-    let { enabledState = $bindable() } : Props = $props();
+    let { title, enabledState = $bindable() } : Props = $props();
 </script>
 
 
-
-<input type="checkbox" bind:checked={enabledState}>
+<TitledComponent title={title}>
+    <input type="checkbox" bind:checked={enabledState}>
+</TitledComponent>

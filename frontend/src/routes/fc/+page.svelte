@@ -64,7 +64,7 @@
 
         const endpoint = endpoints[sharedOptions.mediaType];
 
-        await makeBackendCall(endpoint, setStatusMessage);
+        await makeBackendCall(endpoint);
     }
 
 
@@ -79,7 +79,7 @@
         
         const endpoint = endpoints[sharedOptions.mediaType];
 
-        await makeBackendCall(endpoint, setStatusMessage);
+        await makeBackendCall(endpoint);
     }
 
 
@@ -183,30 +183,30 @@
         autoFinalCheck
     }
     <ol>
-        <li>Use google sheets: <CheckField bind:enabledState={sheetsOptions.useGoogleSheets}/></li>
-        <li>Media Type: <OptionsField bind:optionState={sharedOptions.mediaType} options={mediaTypeOptions} unselectedText="Media Type"/></li>
+        <li><CheckField title="Use google sheets" bind:enabledState={sheetsOptions.useGoogleSheets}/></li>
+        <li><OptionsField title="Media Type" bind:optionState={sharedOptions.mediaType} options={mediaTypeOptions} unselectedText="Media Type"/></li>
         {#if sheetsOptions.useGoogleSheets}
-            <li>Check all groups: <CheckField bind:enabledState={sheetsOptions.checkAllAtOnce}/></li>
-            <li>Project URL: <InputField bind:inputState={sheetsOptions.url}/></li>
+            <li><CheckField title="Check all groups" bind:enabledState={sheetsOptions.checkAllAtOnce}/></li>
+            <li><InputField title="Project URL" bind:inputState={sheetsOptions.url}/></li>
         {/if}
         {#if !sheetsOptions.useGoogleSheets || !sheetsOptions.checkAllAtOnce}
-            <li>Group Number / Identifier: <InputField bind:inputState={sharedOptions.group}/></li>
+            <li><InputField title="Group Number / Identifier" bind:inputState={sharedOptions.group}/></li>
         {/if}
         {#if !sheetsOptions.useGoogleSheets} 
             <div class="vertical-spacer"></div>
-            <li>First Name: <InputField bind:inputState={manualOptions.firstName}/></li>
-            <li>Last Name: <InputField bind:inputState={manualOptions.lastName}/></li>
-            <li>Project Folder Name: <InputField bind:inputState={manualOptions.projectFolderName}/></li>
-            <li>Project has Corrected + Raw folders: <CheckField bind:enabledState={manualOptions.hasCorrectedItems}/></li>
-            <li>Custom Group Folder Name: <InputField bind:inputState={manualOptions.customGroupFolderName}/></li>
+            <li><InputField title="First Name" bind:inputState={manualOptions.firstName}/></li>
+            <li><InputField title="Last Name" bind:inputState={manualOptions.lastName}/></li>
+            <li><InputField title="Project Folder Name" bind:inputState={manualOptions.projectFolderName}/></li>
+            <li><CheckField title="Project has Corrected + Raw folders" bind:enabledState={manualOptions.hasCorrectedItems}/></li>
+            <li><InputField title="Custom Group Folder Name" bind:inputState={manualOptions.customGroupFolderName}/></li>
 
             {#if sharedOptions.mediaType == "Photo"}
                 <div class="vertical-spacer"></div>
-                <li>Photo type: <OptionsField bind:optionState={manualPhotoOptions.photoType} options={photoTypeOptions} unselectedText="Photo Type"/></li>
-                <li>DPI options: <OptionsField bind:optionState={manualPhotoOptions.dpi} options={dpiOptions} unselectedText="DPI"/></li>
-                <li>Normal scans count: <InputField bind:inputState={manualPhotoOptions.normalScansCount}/></li>
-                <li>Handscans count: <InputField bind:inputState={manualPhotoOptions.handScansCount}/></li>
-                <li>Oversized Handscans count: <InputField bind:inputState={manualPhotoOptions.oshScansCount}/></li>
+                <li><OptionsField title="Photo type" bind:optionState={manualPhotoOptions.photoType} options={photoTypeOptions} unselectedText="Photo Type"/></li>
+                <li><OptionsField title="DPI options" bind:optionState={manualPhotoOptions.dpi} options={dpiOptions} unselectedText="DPI"/></li>
+                <li><InputField title="Normal scans count" bind:inputState={manualPhotoOptions.normalScansCount}/></li>
+                <li><InputField title="Handscans count" bind:inputState={manualPhotoOptions.handScansCount}/></li>
+                <li><InputField title="Oversized Handscans count" bind:inputState={manualPhotoOptions.oshScansCount}/></li>
             {/if}
         {/if}
 

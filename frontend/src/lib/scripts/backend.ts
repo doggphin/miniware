@@ -16,17 +16,30 @@ export function sanitizePartOfURI(endpoint : string) : string {
 }
 
 
-export async function makeBackendCall(endpoint : string, setStatus : (status : StatusMessage) => void, requestMethod : string = "GET") {
-    setStatus(StatusMessage.normalMessage("Thinking..."));
+export async function makeBackendCall(endpoint : string, requestMethod : string = "GET") : Promise<void> {
+    return new Promise(async(resolve, reject) => {
+        let backendAddress = `${getBackendAddress()}/${endpoint}`;
 
-    let backendAddress = `${getBackendAddress()}/${endpoint}`;
+        try {
+            const response = await fetch(backendAddress, { method: requestMethod });
 
-    const response = await fetch(backendAddress, { method: requestMethod });
-    const responseJson = await response.json();
-    
-    if(response.status == 200) {
-        setStatus(StatusMessage.successMessage(responseJson["message"]));
-    } else {
-        setStatus(StatusMessage.errorMessage(responseJson["message"] ?? "Unknown error!"));
-    }
+            if(!response.ok) {
+                const responseJson = await response.json().catch(() => ({})); // Prevent json parsing errors
+                reject(StatusMessage.errorMessage(responseJson["message"] ?? "Unknown backend error!"));
+
+            }
+
+            resolve();
+        } catch (error) {
+            if(error instanceof Error) {
+                const humanReadableErrorMessages = new Map<String, string>([
+                    ["Failed to fetch", `Could not reach backend server at ${getBackendAddress()}! Did you close it? Make sure to keep it open!`]
+                ]);
+
+                reject(humanReadableErrorMessages.get(error.message) ?? error.message);
+            }
+
+            reject(`Unknown error occured: ${error}`);
+        }
+    });
 }

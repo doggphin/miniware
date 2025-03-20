@@ -8,7 +8,6 @@
 </script>
 
 
-
 <button onclick={() => {onClick()}}>
     {text}
 </button>

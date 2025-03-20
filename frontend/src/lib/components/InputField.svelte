@@ -1,11 +1,15 @@
 <script lang="ts">
+    import TitledComponent from "./TitledComponent.svelte";
+
     interface Props {
+        title : string,
         inputState : string
     };
 
-    let { inputState: inputState = $bindable() } : Props = $props();
+    let { title, inputState: inputState = $bindable() } : Props = $props();
 </script>
 
 
-
-<input bind:value={inputState} placeholder={"Enter a value here..."}/>
+<TitledComponent title={title}>
+    <input bind:value={inputState} placeholder={"Enter a value here..."}/>
+</TitledComponent>

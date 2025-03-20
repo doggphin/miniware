@@ -20,27 +20,38 @@
     });
     
     async function makeCorrectRequest(mediaType : string) {
+        let endpoint : string;
+        
         if(mediaType == "all") {
-            const sanitizedBaseFolder = sanitizePartOfURI(corrState.baseFolder);
-            const endpoint = `corr/all/${sanitizedBaseFolder}/`;
-            makeBackendCall(endpoint, setStatusMessage, "POST");
-            return;
-        }
+            if(corrState.baseFolder == "") {
+                statusMessage = StatusMessage.fieldNotSetErrorMessage("Base Folder");
+                return
+            }
 
-        if(corrState.fromFolder == "") {
+            const sanitizedBaseFolder = sanitizePartOfURI(corrState.baseFolder);
+            endpoint = `corr/all/${sanitizedBaseFolder}/`;
+        } else {
+            if(corrState.fromFolder == "") {
             statusMessage = StatusMessage.fieldNotSetErrorMessage("From Folder");
             return;
-        }
-        if(corrState.toFolder == "") {
-            statusMessage = StatusMessage.fieldNotSetErrorMessage("To Folder");
-            return;
+            }
+            if(corrState.toFolder == "") {
+                statusMessage = StatusMessage.fieldNotSetErrorMessage("To Folder");
+                return;
+            }
+            const sanitizedFromFolder = sanitizePartOfURI(corrState.fromFolder);
+            const sanitizedToFolder = sanitizePartOfURI(corrState.toFolder);
+
+            endpoint = `corr/${mediaType}/${sanitizedFromFolder}/${sanitizedToFolder}/`;
         }
 
-        const sanitizedFromFolder = sanitizePartOfURI(corrState.fromFolder);
-        const sanitizedToFolder = sanitizePartOfURI(corrState.toFolder);
-
-        const endpoint = `corr/${mediaType}/${sanitizedFromFolder}/${sanitizedToFolder}/`;
-        makeBackendCall(endpoint, setStatusMessage, "POST");
+        await makeBackendCall(endpoint, "POST")
+            .then(() => {
+                statusMessage = StatusMessage.successMessage("All done!")
+            })
+            .catch((e) => {
+                statusMessage = StatusMessage.errorMessage(e);
+            });
     }
 
 
@@ -49,31 +60,30 @@
     }
 
 
-    const mediaTypeToCorrectionDelegate : Record<string, () => void> = {
-        "Slides" : () => makeCorrectRequest("slides"),
-        "Prints" : () => makeCorrectRequest("prints"),
-        "Audio" : () => makeCorrectRequest("audio"),
-        "VHS" : () => makeCorrectRequest("vhs"),
-        "Everything" : () => makeCorrectRequest("all")
+    const mediaTypeToCorrectionDelegate : Record<string, () => Promise<void>> = {
+        "Slides" : async() => makeCorrectRequest("slides"),
+        "Prints" : async() => makeCorrectRequest("prints"),
+        "Audio" : async() => makeCorrectRequest("audio"),
+        "VHS" : async() => makeCorrectRequest("vhs"),
+        "Everything" : async() => makeCorrectRequest("all")
     }
 
 
     async function correct() {
         console.log("Correcting!");
-        const delegate = mediaTypeToCorrectionDelegate[corrState.mediaType] || noMediaTypeSelected;
-        delegate();
+        await (mediaTypeToCorrectionDelegate[corrState.mediaType] || noMediaTypeSelected)();
     }
 </script>
 
 
 <Section title="Correct Media">
     <ol>
-        <li>Media Type: <OptionsField bind:optionState={corrState.mediaType} options={Object.keys(mediaTypeToCorrectionDelegate)} unselectedText="Media Type"/></li>
+        <li><OptionsField title="Media Type" bind:optionState={corrState.mediaType} options={Object.keys(mediaTypeToCorrectionDelegate)} unselectedText="Media Type"/></li>
         {#if corrState.mediaType != "Everything"}
-            <li>From Folder: <InputField bind:inputState={corrState.fromFolder}/></li>
-            <li>To Folder: <InputField bind:inputState={corrState.toFolder}/></li>
+            <li><InputField title="From Folder" bind:inputState={corrState.fromFolder}/></li>
+            <li><InputField title="To Folder" bind:inputState={corrState.toFolder}/></li>
         {:else}
-            <li>Project folder: <InputField bind:inputState={corrState.baseFolder}/></li>
+            <li><InputField title="Project Folder" bind:inputState={corrState.baseFolder}/></li>
         {/if}
     </ol>
     <button onclick={correct}>
@@ -87,6 +97,6 @@
 <style>
     li {
         display: block;
-        margin-top: var(--s4);
+        margin-bottom: var(--s16);
     }
 </style>

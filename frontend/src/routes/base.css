@@ -4,10 +4,12 @@
     --clr-accent: #b8c4bb;
     --clr-accent-highlight: #c9d6ea;
     --clr-accent-dark: #3c362a;
-
+    
     --s4: 4px;
     --s8: 8px;
     --s16: 16px;
     --s24: 24px;
     --s32: 32px;
+
+    --centered-content-size: min(66%, 500px);
 }
