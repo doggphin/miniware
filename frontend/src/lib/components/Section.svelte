@@ -17,12 +17,7 @@
 
 <style>
     .section-container {
-        padding: var(--s8);
-        margin-top: var(--s8);
-        border-radius: var(--s8);
-    }
-    .container {
-        padding: var(--s8);
+        margin-top: var(--s16);
     }
     h1 {
         font-size: var(--s24);

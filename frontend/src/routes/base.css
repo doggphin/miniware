@@ -8,8 +8,40 @@
     --s4: 4px;
     --s8: 8px;
     --s16: 16px;
+    --s20: 20px;
     --s24: 24px;
     --s32: 32px;
 
-    --centered-content-size: min(66%, 500px);
+    --fast: 0.2s;
+
+    --centered-content-size: min(80%, 500px);
+
+    font-family: Arial, Helvetica, sans-serif;
+}
+.noselect {
+    user-select : none;
+    -webkit-user-select : none;
+    -moz-user-select : none;
+    -ms-user-select : none;
+}
+.styled-button {
+    background-color: var(--clr-accent);
+    padding: var(--s8);
+    border-radius: var(--s4);
+    transition-duration: var(--fast);
+    color: var(--clr-primary);
+    text-decoration: none;
+    border: none;
+}
+.styled-button:hover {  
+    background-color: var(--clr-accent-highlight);
+    transition-duration: var(--fast);
+    transform: scale(1.15);
+}
+.clickable:hover {
+    cursor: pointer;
+}
+.bordered {
+    border-style: double;
+    border-color: var(--clr-accent);
 }

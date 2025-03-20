@@ -36,6 +36,7 @@ class BaseCorrector:
 
     def correct_all_files(self):
         """Corrects all files in from_folder_path, saving the results to to_folder_path."""
+
         for folder in [self.from_folder_path, self.to_folder_path]:
             if not (os.path.exists(folder)):
                 raise FolderNotFound(folder)
@@ -91,13 +92,17 @@ def do_complete_correct_task(task : CompleteCorrectTask):
 class CompleteCorrector:
     project_folder : str
 
-    def correct_everything(self):              
-        folders = os.listdir(self.project_folder)
+    def correct_everything(self):
+        try:       
+            folders = os.listdir(self.project_folder)
+        except Exception as e:
+            raise FolderNotFound(self.project_folder)
+        
         if "Raw" not in folders:
             raise NoRawFolderToCorrectFrom()
         
         raw_folder_abs_dir = os.path.join(self.project_folder, "Raw")
-
+        
         abs_raw_subdirs = [str(f.absolute()) for f in Path(raw_folder_abs_dir).iterdir() if f.is_dir()] + [raw_folder_abs_dir]
         print(abs_raw_subdirs)
         

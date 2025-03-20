@@ -1,28 +1,40 @@
 <script lang="ts">
     import './reset.css';
     import './base.css';
-    import NavButton from './NavButton.svelte';
+    import type { Snippet } from 'svelte';
+
+    const navigationButtons = [
+        ["Final Check", "fc"],
+        ["Correct Media", "corr"],
+        ["Other Tools", "other"]
+    ];
+
+    let { children } : { children : Snippet } = $props();
 </script>
 
 
-
+{#snippet navButton(name : string, url : string)}
+    <a href={`/${url}`} class="noselect styled-button">
+        {name}
+    </a>
+{/snippet}
 <div class="navbar">
     <div class="centered-content">
         <ol class="navbar-items-separator">
-            <li class="logo">
+            <li class="logo noselect">
                 MemoryWare
             </li>
             <li class="navbar-pages">
-                <NavButton name="Final Check" url="fc"/>
-                <NavButton name="Correct Media" url="corr"/>
-                <NavButton name="Other Tools" url="other"/>
+                {#each navigationButtons as navigationButton}
+                    {@render navButton(navigationButton[0], navigationButton[1])}
+                {/each}
             </li>
         </ol>
     </div>
 </div>
 <div class="navbar-lower-line"></div>
 <div class="below-navbar centered-content">
-    <slot />
+    {@render children()}
 </div>
 
 
@@ -30,13 +42,19 @@
 <style>
     :root {
         background-color: var(--clr-background);
-        --navbar-height: 64px;
+        --navbar-height: 80px;
         color: var(--clr-primary);
     }
     .logo {
         color: var(--clr-primary);
         font-size: 20px;
         font-style: bold;
+    }
+    .navbar-pages {
+        display: flex;
+        flex-direction: row;
+        gap: var(--s8);
+        margin-top: var(--s8);
     }
     .navbar {
         align-content: center;

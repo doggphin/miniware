@@ -12,3 +12,10 @@
 <TitledComponent title={title}>
     <input type="checkbox" bind:checked={enabledState}>
 </TitledComponent>
+
+
+<style>
+    input {
+        transform: scale(1.5);
+    }
+</style>

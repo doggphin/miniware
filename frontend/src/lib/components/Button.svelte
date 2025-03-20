@@ -8,6 +8,6 @@
 </script>
 
 
-<button onclick={() => {onClick()}}>
+<button class="styled-button clickable" onclick={() => {onClick()}}>
     {text}
 </button>

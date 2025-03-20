@@ -5,6 +5,7 @@
     import { StatusMessage } from "$lib/scripts/statusMessage";
     import { makeBackendCall, sanitizePartOfURI } from "$lib/scripts/backend";
     import StatusMessageDisplay from "$lib/components/StatusMessageDisplay.svelte";
+    import Button from "$lib/components/Button.svelte";
 
     let statusMessage = $state(new StatusMessage("", ""));
     function setStatusMessage(newStatusMessage : StatusMessage) {
@@ -22,6 +23,7 @@
     async function makeCorrectRequest(mediaType : string) {
         let endpoint : string;
         
+        statusMessage = StatusMessage.normalMessage("Correcting...")
         if(mediaType == "all") {
             if(corrState.baseFolder == "") {
                 statusMessage = StatusMessage.fieldNotSetErrorMessage("Base Folder");
@@ -86,9 +88,7 @@
             <li><InputField title="Project Folder" bind:inputState={corrState.baseFolder}/></li>
         {/if}
     </ol>
-    <button onclick={correct}>
-        Correct!
-    </button>
+    <Button text="Correct!" onClick={correct} />
     <StatusMessageDisplay statusMessage={statusMessage}/>
 </Section>
 

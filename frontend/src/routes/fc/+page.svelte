@@ -6,6 +6,7 @@
     import { parseGoogleSheetsUrlOrError } from "$lib/scripts/verifiers";
     import { getBackendAddress, sanitizePartOfURI, makeBackendCall } from "$lib/scripts/backend";
     import { StatusMessage } from "$lib/scripts/statusMessage";
+    import Button from "$lib/components/Button.svelte";
 
     let statusMessage = $state(new StatusMessage("", ""));
     function setStatusMessage(message : StatusMessage) {
@@ -211,7 +212,7 @@
         {/if}
 
         <div class="vertical-spacer"></div>
-        <button onclick={finalCheckDelegate}> Final check! </button>
+        <Button text="Final Check!" onClick={finalCheckDelegate} />
 
         {#if statusMessage.message}
             <div class="vertical-spacer"></div>

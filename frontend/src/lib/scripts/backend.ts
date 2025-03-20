@@ -25,8 +25,8 @@ export async function makeBackendCall(endpoint : string, requestMethod : string 
 
             if(!response.ok) {
                 const responseJson = await response.json().catch(() => ({})); // Prevent json parsing errors
-                reject(StatusMessage.errorMessage(responseJson["message"] ?? "Unknown backend error!"));
-
+                console.log(responseJson);
+                reject(responseJson["message"] ?? "Unknown backend error!");
             }
 
             resolve();

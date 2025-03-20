@@ -11,5 +11,14 @@
 
 
 <TitledComponent title={title}>
-    <input bind:value={inputState} placeholder={"Enter a value here..."}/>
+    <input class="bordered" bind:value={inputState} placeholder={"Enter a value here..."}/>
 </TitledComponent>
+
+
+<style>
+    input {
+        border-radius: var(--s4);
+        padding: var(--s8);
+        width: 100%;
+    }
+</style>

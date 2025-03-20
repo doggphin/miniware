@@ -18,7 +18,7 @@ class CustomException(ABC, Exception):
     def _make_error_response(self, message : str, code : int) -> Response:
         return Response(
             data = {
-                "message" : { message },
+                "message" : message,
             },
             status = code
         )
