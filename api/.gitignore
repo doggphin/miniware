@@ -2,5 +2,4 @@
 venv
 .env
 credentials.json
-names_to_drives.json
 token.json

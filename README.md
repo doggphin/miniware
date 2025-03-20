@@ -26,11 +26,4 @@ git clone https://github.com/doggphin/miniware.git
 
 ## Update Instructions
 
-- Open a terminal in the MiniWare folder.
-
-- Run the command:
-```
-git pull
-```
-
-- Run `install.bat` on Windows or `install.sh` on Linux to finish installing any updates.
+- Run `update.bat` on Windows or `update.sh` on Linux.
