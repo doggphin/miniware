@@ -22,7 +22,7 @@
     <div class="centered-content">
         <ol class="navbar-items-separator">
             <li class="logo noselect">
-                MemoryWare
+                MiniWare
             </li>
             <li class="navbar-pages">
                 {#each navigationButtons as navigationButton}
@@ -32,9 +32,22 @@
         </ol>
     </div>
 </div>
-<div class="navbar-lower-line"></div>
+
+<div class="navbar-lower-line top-navbar-spacer"></div>
+
 <div class="below-navbar centered-content">
     {@render children()}
+</div>
+
+<div class="footer-spacer"></div>
+
+<div class="footer">
+    <div class="navbar-lower-line"></div>
+    <div class="footer-container">
+        Made by Brendan Lancaster (2025). 
+        Need help? 
+        E-mail me at <a style="margin: 0 0 0 var(--s8);" href="mailto:brendan.howard.lancaster@gmail.com"> brendan.howard.lancaster@gmail.com</a>!
+    </div>
 </div>
 
 
@@ -44,6 +57,22 @@
         background-color: var(--clr-background);
         --navbar-height: 80px;
         color: var(--clr-primary);
+    }
+    .footer-spacer {
+        margin-bottom: 60px;
+    }
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1;
+        background-color: var(--clr-background);
+    }
+    .footer-container {
+        display: flex;
+        justify-content: center;
+        padding: var(--s8);
     }
     .logo {
         color: var(--clr-primary);
@@ -65,8 +94,10 @@
     }
     .navbar-lower-line {
         background-image: linear-gradient(to right, var(--clr-background), var(--clr-accent), var(--clr-background));
-        margin-top: var(--navbar-height);
         height: var(--s4);
+    }
+    .top-navbar-spacer {
+        margin-top: var(--navbar-height);
     }
     .centered-content {
         position: relative;

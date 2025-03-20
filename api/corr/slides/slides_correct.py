@@ -8,15 +8,27 @@ from PIL import Image
 
 from corr.color_balance import simplest_cb
 
-# To Eric: set these to True or False to enable color and/or crop corrections
-# \/ \/ \/ \/
-DO_COLOR = True
-DO_CROP = True
-# /\ /\ /\ /\
-
 # How far will colors be considered to be background?
 # Should be set somewhere between 15-25
 BACKGROUND_CROPPING_AGGRESSION = 16
+SAMPLING_OFFSET_DISTANCE = 10
+ACCEPTABLE_ASPECT_RATIOS = [
+    1.5,
+    1.33,
+    1
+]
+ACCEPTABLE_ASPECT_RATIO_LENIENCE = 0.04
+ACCEPTABLE_TILT = 5
+NEGATIVE_PADDING_FACTOR = 1.05
+
+
+def estimate_tilt_with_min_area_rect(points) -> float:
+    # Compute the minimum area rectangle that encloses the points
+    rect = cv2.minAreaRect(points)
+    # rect returns ((center_x, center_y), (width, height), angle)
+    # The angle returned is the rotation of the rectangle
+    _, _, angle = rect
+    return angle
 
 
 # TODO: Fix this to do necessary rotations + flips here
@@ -52,20 +64,23 @@ def correct_slide(from_path: str, to_dir: str) -> List[str]:
     
     image = cv2.imread(from_path)
     pil_image = Image.open(from_path)
+    
     dpi = pil_image.info.get("dpi", (None, None))[0]
 
-    if(DO_CROP):
-        height, width, _ = image.shape
+    height, width, _ = image.shape
 
-        offset = 10
-        bg_colors = [
-            tuple(image[height - offset, width // 2]),
-            tuple(image[height // 2, width - offset]),
-            tuple(image[offset, width // 2]),
-            tuple(image[height // 2, offset])
-        ]
-        threshhold = BACKGROUND_CROPPING_AGGRESSION
+    offset = SAMPLING_OFFSET_DISTANCE
+    bg_colors = [
+        tuple(image[height - offset, width // 2]),
+        tuple(image[height // 2, width - offset]),
+        tuple(image[offset, width // 2]),
+        tuple(image[height // 2, offset])
+    ]
 
+    could_crop_correctly = False
+    for threshhold_offset in [0, 1, -1, 2, -2, 4, -4]:
+        threshhold = BACKGROUND_CROPPING_AGGRESSION + threshhold_offset
+        
         output_image = np.ones_like(image) * 0
 
         for color in bg_colors:
@@ -109,6 +124,19 @@ def correct_slide(from_path: str, to_dir: str) -> List[str]:
         ordered_box = order_points(largest_box)
 
         pt_A, pt_B, pt_C, pt_D = ordered_box
+
+        # Compute the difference for the top edge (A -> B)
+        delta_x = pt_B[0] - pt_A[0]
+        delta_y = pt_B[1] - pt_A[1]
+
+        # Calculate the angle in radians and convert to degrees
+        angle_radians = math.atan2(delta_y, delta_x)
+        angle_degrees = math.degrees(angle_radians)
+
+        if abs(angle_degrees) > ACCEPTABLE_TILT:
+            print(f"Detected tilt on {to_path}: {angle_degrees:.2f}°")
+            continue
+
         width_AD = np.sqrt(((pt_A[0] - pt_D[0]) ** 2) + ((pt_A[1] - pt_D[1]) ** 2))
         width_BC = np.sqrt(((pt_B[0] - pt_C[0]) ** 2) + ((pt_B[1] - pt_C[1]) ** 2))
         max_width = max(int(width_AD), int(width_BC))
@@ -119,17 +147,40 @@ def correct_slide(from_path: str, to_dir: str) -> List[str]:
 
         input_pts = np.float32([pt_A, pt_B, pt_C, pt_D])
 
-        endY = int(max_height * 1.04)
-        endX = int(max_width * 1.04)
+        endY = int(max_height * NEGATIVE_PADDING_FACTOR)
+        endX = int(max_width * NEGATIVE_PADDING_FACTOR)
         startY = int(endY - max_height)
         startX = int(endX - max_width)
-        output_pts = np.float32([[-startX, -startY],
+
+        aspect_ratio = max(max_width, max_height) / min(max_width, max_height)
+        
+        for acceptable_aspect_ratio in ACCEPTABLE_ASPECT_RATIOS:
+            lower_bound = acceptable_aspect_ratio * (1 - ACCEPTABLE_ASPECT_RATIO_LENIENCE)
+            upper_bound = acceptable_aspect_ratio * (1 + ACCEPTABLE_ASPECT_RATIO_LENIENCE)
+            if aspect_ratio < upper_bound and aspect_ratio > lower_bound:
+                could_crop_correctly = True
+                break
+
+        if could_crop_correctly:
+            output_pts = np.float32([[-startX, -startY],
                                 [-startX, endY],
                                 [endX, endY],
                                 [endX, -startX]])
+            break
+
+            # tilt = estimate_tilt_with_min_area_rect(output_pts)
+            # tilt %= 90
+            # if abs(tilt - 90) < abs(tilt):
+            #     tilt = tilt - 90
+            # if abs(tilt) > ACCEPTABLE_TILT:
+            #     print(f"Tilt of {tilt} was too high!")
+            #     continue
+            # print(tilt)
+    
+    if could_crop_correctly:
 
         # Compute the perspective transform M (stretches image to fit rectangle)
-        M = cv2.getPerspectiveTransform(input_pts,output_pts)
+        M = cv2.getPerspectiveTransform(input_pts, output_pts)
         
         # Warp image by perspective transform
         out = cv2.warpPerspective(image, M, (max_width, max_height),flags=cv2.INTER_LINEAR)
@@ -137,11 +188,13 @@ def correct_slide(from_path: str, to_dir: str) -> List[str]:
         # Could probably skip doing this by rewriting order_points but whatever
         out = cv2.flip(out, 0)
         out = cv2.rotate(out, 0)
-    else:
-        out = image     # Shitty implementation for do_color/do_crop to make functional, refactor later
 
-    if(DO_COLOR):
+        # Apply color balance
         out = simplest_cb(out, 1)
+    else:
+        print(f"{max_height} {max_width} {aspect_ratio}")
+        print("Could not match to a known aspect ratio!")
+        out = image
 
     # Save image to to_path
     cv2.imwrite(to_path, out)
