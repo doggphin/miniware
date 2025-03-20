@@ -11,6 +11,7 @@ Install the following:
 - [Python 3.12.6](https://www.python.org/downloads/release/python-3126/)
 - [Node.js](https://nodejs.org/en)
 - [Git](https://git-scm.com/downloads)
+- [Chocolatey](https://chocolatey.org/install)
 - [FFmpeg](https://community.chocolatey.org/packages/ffmpeg)
 
 Then make a copy of MiniWare on your computer by opening a terminal and running the command:
