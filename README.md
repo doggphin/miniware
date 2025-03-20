@@ -6,7 +6,7 @@ This project serves as a temporary alternative to MemoryWare while it's still in
 
 ## Pre-Setup instructions
 
-Install the following:
+Install the following. If in the installation process you are asked if you want to add something to path, CLICK YES!
 
 - [Python 3.12.6](https://www.python.org/downloads/release/python-3126/)
 - [Node.js](https://nodejs.org/en)
