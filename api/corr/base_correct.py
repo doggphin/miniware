@@ -16,12 +16,13 @@ from corr.video.vhs_correct import correct_vhs
 class CorrectTask:
     file_path : str
     to_folder_path : str
-    correct_file_delegate : Callable[[str, str], str]
+    correct_file_delegate : Callable[[str, str, Dict[str, any]], str]
+    options : Dict[str, any]
 
 
 def do_correct_task(task : CorrectTask):
     try:
-        saved_output_file_paths = task.correct_file_delegate(task.file_path, task.to_folder_path)
+        saved_output_file_paths = task.correct_file_delegate(task.file_path, task.to_folder_path, task.options)
         return f"Corrected {task.file_path}, saved to {saved_output_file_paths}"
     except GenericProblem as e:
         return f"Error correcting {task.file_path}: {e.get_problem}"
@@ -32,7 +33,8 @@ class BaseCorrector:
     from_folder_path : str
     to_folder_path : str
     expected_extensions : List[str]
-    correct_file_delegate : Callable[[str, str], str]
+    correct_file_delegate : Callable[[str, str, Dict[str, any]], str]
+    options : Dict[str, any]
 
     def correct_all_files(self):
         """Corrects all files in from_folder_path, saving the results to to_folder_path."""
@@ -58,7 +60,7 @@ class BaseCorrector:
                 print(f"{full_file_path}'s extension \"{file_extension}\" was not one of {self.expected_extensions})! Skipping it!")
                 continue
             
-            tasks.append(CorrectTask(full_file_path, self.to_folder_path, self.correct_file_delegate))
+            tasks.append(CorrectTask(full_file_path, self.to_folder_path, self.correct_file_delegate, self.options))
             
         with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
             futures = {executor.submit(do_correct_task, task): task for task in tasks}
@@ -77,12 +79,13 @@ class BaseCorrector:
 class CompleteCorrectTask:
     file_path : str
     to_folder : str
-    correct_file_delegate : Callable[[str, str], str]
+    correct_file_delegate : Callable[[str, str, Dict[str, any]], str]
+    options : Dict[str, any]
 
 
 def do_complete_correct_task(task : CompleteCorrectTask):
     try:
-        saved_output_file_paths = task.correct_file_delegate(task.file_path, task.to_folder)
+        saved_output_file_paths = task.correct_file_delegate(task.file_path, task.to_folder, task.options)
         return f"Corrected {task.file_path}, saved to {saved_output_file_paths}"
     except GenericProblem as e:
         return f"Error correcting {task.file_path}: {e.get_problem}"
@@ -91,6 +94,7 @@ def do_complete_correct_task(task : CompleteCorrectTask):
 @dataclass
 class CompleteCorrector:
     project_folder : str
+    options : Dict[str, any] = field(default_factory=dict)
 
     def correct_everything(self):
         try:       
@@ -115,7 +119,7 @@ class CompleteCorrector:
             for abs_file_path in abs_file_paths:
                 file_name, file_extension = os.path.splitext(os.path.basename(abs_file_path))
 
-                correct_file_delegate : Callable[[str, str], str] = None
+                correct_file_delegate : Callable[[str, str, Dict[str, any]], str] = None
 
                 # Convert the file extension and naming of the file into 
                 file_name_lower = file_name.lower()
@@ -133,7 +137,8 @@ class CompleteCorrector:
                     task = CompleteCorrectTask(
                         abs_file_path,
                         abs_corr_folder,
-                        correct_file_delegate
+                        correct_file_delegate,
+                        self.options
                     )
                     tasks.append(task)
         

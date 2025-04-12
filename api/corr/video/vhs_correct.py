@@ -1,6 +1,6 @@
 import io
 import os
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 import cv2
 import librosa
 import numpy as np
@@ -95,7 +95,7 @@ def get_seconds(frame_idx : int, fps : float) -> float:
     return float(frame_idx / fps)
 
 
-def correct_vhs(from_path : str, to_dir : str) -> List[str]:
+def correct_vhs(from_path : str, to_dir : str, options: Dict[str, any]) -> List[str]:
     file_name, file_extension = os.path.splitext(os.path.basename(from_path))
     to_path = os.path.join(to_dir, f"{file_name}{file_extension}")
     

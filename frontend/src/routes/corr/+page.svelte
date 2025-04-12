@@ -6,6 +6,7 @@
     import { makeBackendCall, sanitizePartOfURI } from "$lib/scripts/backend";
     import StatusMessageDisplay from "$lib/components/StatusMessageDisplay.svelte";
     import Button from "$lib/components/Button.svelte";
+    import CheckField from "$lib/components/CheckField.svelte";
 
     let statusMessage = $state(new StatusMessage("", ""));
     function setStatusMessage(newStatusMessage : StatusMessage) {
@@ -16,9 +17,18 @@
         mediaType : "",
         fromFolder : "",
         toFolder : "",
-
-        baseFolder : ""
+        baseFolder : "",
     });
+
+    let slidesDisableCrop = $state(false);
+    let slidesDisableColorCorrection = $state(false);
+    let slidesEnforcedAspectRatio = $state("");
+    const enforcedAspectRatios = [
+        "Any",
+        "4:3",
+        "3:2",
+        "1:1"
+    ];
     
     async function makeCorrectRequest(mediaType : string) {
         let endpoint : string;
@@ -47,7 +57,13 @@
             endpoint = `corr/${mediaType}/${sanitizedFromFolder}/${sanitizedToFolder}/`;
         }
 
-        await makeBackendCall(endpoint, "POST")
+        await makeBackendCall(endpoint, "POST", {
+            "options" : {
+                "slidesDisableCrop" : slidesDisableCrop,
+                "slidesDisableColorCorrection" : slidesDisableColorCorrection,
+                "slidesEnforceAspectRatio" : slidesEnforcedAspectRatio
+            }
+        })
             .then(() => {
                 statusMessage = StatusMessage.successMessage("All done!")
             })
@@ -81,6 +97,11 @@
 <Section title="Correct Media">
     <ol>
         <li><OptionsField title="Media Type" bind:optionState={corrState.mediaType} options={Object.keys(mediaTypeToCorrectionDelegate)} unselectedText="Media Type"/></li>
+        {#if corrState.mediaType == "Slides" || corrState.mediaType == "Everything"}
+            <li><CheckField title="Disable Slides Cropping" bind:enabledState={slidesDisableCrop}/></li>
+            <li><CheckField title="Disable Slides Color Correction" bind:enabledState={slidesDisableColorCorrection}/></li>
+            <li><OptionsField title="Enforce Slides Aspect Ratio" bind:optionState={slidesEnforcedAspectRatio} options={enforcedAspectRatios} unselectedText={enforcedAspectRatios[0]}/></li>
+        {/if}
         {#if corrState.mediaType != "Everything"}
             <li><InputField title="From Folder" bind:inputState={corrState.fromFolder}/></li>
             <li><InputField title="To Folder" bind:inputState={corrState.toFolder}/></li>

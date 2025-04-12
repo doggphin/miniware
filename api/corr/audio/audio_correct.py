@@ -1,7 +1,7 @@
 import gc
 import io
 import os
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 import librosa
 import numpy as np
 from pydub import AudioSegment
@@ -69,7 +69,7 @@ def get_start_and_end(y: np.ndarray, sr: int, top_db : int = 30) -> Tuple[int, i
 
     return None
 
-def correct_audio(from_path: str, to_dir: str) -> List[str]:
+def correct_audio(from_path: str, to_dir: str, options : Dict[str, any]) -> List[str]:
     file_name, file_extension = os.path.splitext(os.path.basename(from_path))
     to_path = os.path.join(to_dir, f"{file_name}.mp3")
 

@@ -16,12 +16,20 @@ export function sanitizePartOfURI(endpoint : string) : string {
 }
 
 
-export async function makeBackendCall(endpoint : string, requestMethod : string = "GET") : Promise<void> {
+export async function makeBackendCall(endpoint : string, requestMethod : string = "GET", body : any = null) : Promise<void> {
     return new Promise(async(resolve, reject) => {
         let backendAddress = `${getBackendAddress()}/${endpoint}`;
 
         try {
-            const response = await fetch(backendAddress, { method: requestMethod });
+            const response = await fetch(
+                backendAddress, 
+                { 
+                    method: requestMethod,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: body ? JSON.stringify(body) : null,
+                });
 
             if(!response.ok) {
                 const responseJson = await response.json().catch(() => ({})); // Prevent json parsing errors
