@@ -232,11 +232,9 @@ def correct_slide(from_path: str, to_dir: str, options: Dict[str, any] = None) -
     if (disable_crop or could_crop_correctly) and not disable_color_correction:
         out = simplest_cb(out, 1)
 
-    # Save image to to_path
-    cv2.imwrite(to_path, out)
-
-    # Finally, fix DPI of exported image
-    pil_image_after = Image.open(to_path)
-    pil_image_after.save(to_path, dpi=(dpi, dpi), subsampling=0, quality=95)
+    # Convert OpenCV image (BGR) to PIL Image (RGB) and save with DPI information
+    out_rgb = cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
+    pil_image_out = Image.fromarray(out_rgb)
+    pil_image_out.save(to_path, dpi=(dpi, dpi), subsampling=0, quality=95)
 
     return [to_path]

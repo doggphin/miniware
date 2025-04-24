@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field
 import os
 from pathlib import Path
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Union, Tuple
 
 import concurrent
 
 from corr.correction_problem import GenericProblem
 from corr.exceptions import FolderNotFound, NoRawFolderToCorrectFrom
+from mwlocal.helpers import CustomException
 from corr.audio.audio_correct import correct_audio
 from corr.prints.prints_correct import correct_print
 from corr.slides.slides_correct import correct_slide
@@ -89,7 +90,48 @@ def do_complete_correct_task(task : CompleteCorrectTask):
         return f"Corrected {task.file_path}, saved to {saved_output_file_paths}"
     except GenericProblem as e:
         return f"Error correcting {task.file_path}: {e.get_problem}"
+
+
+@dataclass
+class SingleFileCorrector:
+    file_path: str
+    to_folder_path: str
+    expected_extensions: List[str]
+    correct_file_delegate: Callable[[str, str, Dict[str, any]], str]
+    options: Dict[str, any] = field(default_factory=dict)
     
+    def correct_file(self) -> Tuple[bool, Union[str, Exception], Union[str, None]]:
+        """
+        Corrects a single file and returns the result.
+        
+        Returns:
+            Tuple containing:
+            - success: Boolean indicating if the correction was successful
+            - message: Success message or exception
+            - output_path: Path to the corrected file if successful, None otherwise
+        """
+        try:
+            # Check if file exists
+            if not os.path.exists(self.file_path):
+                return False, FileNotFoundError(f"File not found: {self.file_path}"), None
+            
+            # Check file extension
+            file_extension = self.file_path.split('.')[-1].lower()
+            if file_extension not in self.expected_extensions:
+                return False, ValueError(f"Invalid file extension: {file_extension}. Expected one of {self.expected_extensions}"), None
+            
+            # Ensure output directory exists
+            if not os.path.exists(self.to_folder_path):
+                os.makedirs(self.to_folder_path, exist_ok=True)
+            
+            # Correct the file
+            output_path = self.correct_file_delegate(self.file_path, self.to_folder_path, self.options)
+            
+            return True, f"File corrected successfully: {output_path}", output_path
+        except CustomException as e:
+            return False, e, None
+        except Exception as e:
+            return False, e, None
 
 @dataclass
 class CompleteCorrector:

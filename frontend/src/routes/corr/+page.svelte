@@ -20,6 +20,7 @@
         baseFolder : "",
     });
 
+    // Slides options
     let slidesDisableCrop = $state(false);
     let slidesDisableColorCorrection = $state(false);
     let slidesEnforcedAspectRatio = $state("");
@@ -29,6 +30,18 @@
         "3:2",
         "1:1"
     ];
+    
+    // Prints options
+    let printsDisableCrop = $state(false);
+    let printsDisableColorCorrection = $state(false);
+    
+    // Audio options
+    let audioSilenceThreshholdDb = $state("");
+    const AUDIO_DEFAULT_THRESHOLD = "30";
+    
+    // VHS options
+    let vhsSilenceThreshholdDb = $state("");
+    const VHS_DEFAULT_THRESHOLD = "18";
     
     async function makeCorrectRequest(mediaType : string) {
         let endpoint : string;
@@ -59,9 +72,20 @@
 
         await makeBackendCall(endpoint, "POST", {
             "options" : {
+                // Slides options
                 "slidesDisableCrop" : slidesDisableCrop,
                 "slidesDisableColorCorrection" : slidesDisableColorCorrection,
-                "slidesEnforceAspectRatio" : slidesEnforcedAspectRatio
+                "slidesEnforceAspectRatio" : slidesEnforcedAspectRatio,
+                
+                // Prints options
+                "printsDisableCrop" : printsDisableCrop,
+                "printsDisableColorCorrection" : printsDisableColorCorrection,
+                
+                // Audio options
+                "audioSilenceThreshholdDb" : parseInt(audioSilenceThreshholdDb),
+                
+                // VHS options
+                "vhsSilenceThreshholdDb" : parseInt(vhsSilenceThreshholdDb)
             }
         })
             .then(() => {
@@ -82,7 +106,7 @@
         "Slides" : async() => makeCorrectRequest("slides"),
         "Prints" : async() => makeCorrectRequest("prints"),
         "Audio" : async() => makeCorrectRequest("audio"),
-        "VHS" : async() => makeCorrectRequest("vhs"),
+        "Video" : async() => makeCorrectRequest("vhs"),
         "Everything" : async() => makeCorrectRequest("all")
     }
 
@@ -97,16 +121,48 @@
 <Section title="Correct Media">
     <ol>
         <li><OptionsField title="Media Type" bind:optionState={corrState.mediaType} options={Object.keys(mediaTypeToCorrectionDelegate)} unselectedText="Media Type"/></li>
-        {#if corrState.mediaType == "Slides" || corrState.mediaType == "Everything"}
-            <li><CheckField title="Disable Slides Cropping" bind:enabledState={slidesDisableCrop}/></li>
-            <li><CheckField title="Disable Slides Color Correction" bind:enabledState={slidesDisableColorCorrection}/></li>
-            <li><OptionsField title="Enforce Slides Aspect Ratio" bind:optionState={slidesEnforcedAspectRatio} options={enforcedAspectRatios} unselectedText={enforcedAspectRatios[0]}/></li>
-        {/if}
+        
+        <!-- Folder input fields moved to the top -->
         {#if corrState.mediaType != "Everything"}
             <li><InputField title="From Folder" bind:inputState={corrState.fromFolder}/></li>
             <li><InputField title="To Folder" bind:inputState={corrState.toFolder}/></li>
         {:else}
             <li><InputField title="Project Folder" bind:inputState={corrState.baseFolder}/></li>
+        {/if}
+        
+        <!-- Slides options -->
+        {#if corrState.mediaType == "Slides" || corrState.mediaType == "Everything"}
+            {#if corrState.mediaType == "Everything"}
+                <li class="section-title">Slides Options</li>
+            {/if}
+            <li><CheckField title="Disable Slides Cropping" bind:enabledState={slidesDisableCrop}/></li>
+            <li><CheckField title="Disable Slides Color Correction" bind:enabledState={slidesDisableColorCorrection}/></li>
+            <li><OptionsField title="Enforce Slides Aspect Ratio" bind:optionState={slidesEnforcedAspectRatio} options={enforcedAspectRatios} unselectedText={enforcedAspectRatios[0]}/></li>
+        {/if}
+        
+        <!-- Prints options -->
+        {#if corrState.mediaType == "Prints" || corrState.mediaType == "Everything"}
+            {#if corrState.mediaType == "Everything"}
+                <li class="section-title">Prints Options</li>
+            {/if}
+            <li><CheckField title="Disable Prints Cropping" bind:enabledState={printsDisableCrop}/></li>
+            <li><CheckField title="Disable Prints Color Correction" bind:enabledState={printsDisableColorCorrection}/></li>
+        {/if}
+        
+        <!-- Audio options -->
+        {#if corrState.mediaType == "Audio" || corrState.mediaType == "Everything"}
+            {#if corrState.mediaType == "Everything"}
+                <li class="section-title">Audio Options</li>
+            {/if}
+            <li><InputField title="Audio Silence Threshold (dB)" bind:inputState={audioSilenceThreshholdDb} numericalOnly={true} placeholderText={`${AUDIO_DEFAULT_THRESHOLD}`}/></li>
+        {/if}
+        
+        <!-- VHS options -->
+        {#if corrState.mediaType == "Video" || corrState.mediaType == "Everything"}
+            {#if corrState.mediaType == "Everything"}
+                <li class="section-title">Video Options</li>
+            {/if}
+            <li><InputField title="Video Silence Threshold (dB)" bind:inputState={vhsSilenceThreshholdDb} numericalOnly={true} placeholderText={`${VHS_DEFAULT_THRESHOLD}`}/></li>
         {/if}
     </ol>
     <Button text="Correct!" onClick={correct} />
@@ -119,5 +175,13 @@
     li {
         display: block;
         margin-bottom: var(--s16);
+    }
+    
+    .section-title {
+        font-weight: bold;
+        font-size: 1.1em;
+        margin-top: var(--s24);
+        margin-bottom: var(--s8);
+        color: #333;
     }
 </style>

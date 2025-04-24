@@ -53,11 +53,11 @@ def compute_gain(y: np.ndarray, target_dbfs: float) -> float:
     return gain
 
 
-def get_start_and_end(y: np.ndarray, sr: int, top_db : int = 30) -> Tuple[int, int]:
+def get_start_and_end(y: np.ndarray, sr: int, silence_threshhold : int = 30) -> Tuple[int, int]:
     """
     Finds where a track starts and ends (with some padding). Returns None if the audio is blank.
     """
-    intervals = librosa.effects.split(y, top_db=top_db)
+    intervals = librosa.effects.split(y, top_db=silence_threshhold)
     min_duration_samples = int(MIN_ALLOWED_BURST_OF_AUDIO_DURING_SILENCE_SECONDS * sr)
     filtered_intervals = [interval for interval in intervals if (interval[1] - interval[0]) >= min_duration_samples]
 
@@ -70,6 +70,13 @@ def get_start_and_end(y: np.ndarray, sr: int, top_db : int = 30) -> Tuple[int, i
     return None
 
 def correct_audio(from_path: str, to_dir: str, options : Dict[str, any]) -> List[str]:
+    # Initialize options if None
+    if options is None:
+        options = {}
+    
+    # Get silence threshold option with default value
+    silence_threshold_db = options.get("audioSilenceThreshholdDb", 30)
+    
     file_name, file_extension = os.path.splitext(os.path.basename(from_path))
     to_path = os.path.join(to_dir, f"{file_name}.mp3")
 
@@ -81,7 +88,7 @@ def correct_audio(from_path: str, to_dir: str, options : Dict[str, any]) -> List
         y_mono = librosa.to_mono(y)
     else:
         y_mono = y
-    start_and_end = get_start_and_end(y_mono, sr)
+    start_and_end = get_start_and_end(y_mono, sr, silence_threshold_db)
 
     # Trim silence from the beginning and end using the mono version
     # After that, we don't need y_mono anymore, so collect it
