@@ -153,13 +153,6 @@ def manual_final_check(request, folder_path):
     # Get immediate subdirectories
     try:
         subdirs = [f.path for f in os.scandir(folder_path) if f.is_dir()]
-        
-        # Check if both "Raw" and "Corrected" folders exist
-        subdir_names = [os.path.basename(d) for d in subdirs]
-        if "Raw" in subdir_names and "Corrected" in subdir_names:
-            # Filter out the "Raw" folder
-            print(f"Found both 'Raw' and 'Corrected' folders. Skipping 'Raw' folder.")
-            subdirs = [d for d in subdirs if os.path.basename(d) != "Raw"]
     except Exception as e:
         return Response(data=make_message(f"Error accessing folder: {str(e)}"), status=500)
     
