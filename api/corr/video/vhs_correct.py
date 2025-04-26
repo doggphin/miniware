@@ -45,7 +45,16 @@ def correct_vhs(from_path : str, to_dir : str, options: Dict[str, any]) -> List[
     print("done with decode")
     audio_buffer = io.BytesIO(audio_data)
     audio, sr = librosa.load(audio_buffer, sr=None)
-    start_audio_seconds, end_audio_seconds = get_start_and_end(audio, sr, silence_threshold_db)
+    
+    # Get the audio timing and check if it's None
+    result = get_start_and_end(audio, sr, silence_threshold_db)
+    if result is None:
+        # No valid audio intervals found
+        print(f"No valid audio intervals found in the VHS file: {from_path}")
+        from corr.correction_problem import GenericProblem
+        raise GenericProblem("No valid audio intervals found in the VHS file")
+    
+    start_audio_seconds, end_audio_seconds = result
     start_audio_seconds /= AUDIO_SAMPLE_RATE
     end_audio_seconds /= AUDIO_SAMPLE_RATE
     
