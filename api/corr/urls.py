@@ -9,9 +9,7 @@ urlpatterns = [
     path('vhs/<str:from_folder>/<str:to_folder>/', views.correct_vhs),
     path('all/<str:project_folder>/', views.correct_all),
     
-    # Endpoints for correcting single files
-    path('slides/single/<str:file_path>/<str:to_folder>/', views.correct_single_slide),
-    path('prints/single/<str:file_path>/<str:to_folder>/', views.correct_single_print),
-    path('audio/single/<str:file_path>/<str:to_folder>/', views.correct_single_audio),
-    path('vhs/single/<str:file_path>/<str:to_folder>/', views.correct_single_vhs),
+    # Task status endpoints
+    path('tasks/<str:task_id>/', views.get_task_status),
+    path('tasks/', views.get_all_tasks),
 ]

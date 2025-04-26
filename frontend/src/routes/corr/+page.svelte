@@ -3,7 +3,7 @@
     import InputField from "$lib/components/InputField.svelte";
     import OptionsField from "$lib/components/OptionsField.svelte";
     import { StatusMessage } from "$lib/scripts/statusMessage";
-    import { makeBackendCall, sanitizePartOfURI } from "$lib/scripts/backend";
+    import { makeBackendCall, sanitizePartOfURI, pollTaskStatus } from "$lib/scripts/backend";
     import StatusMessageDisplay from "$lib/components/StatusMessageDisplay.svelte";
     import Button from "$lib/components/Button.svelte";
     import CheckField from "$lib/components/CheckField.svelte";
@@ -46,7 +46,7 @@
     async function makeCorrectRequest(mediaType : string) {
         let endpoint : string;
         
-        statusMessage = StatusMessage.normalMessage("Correcting...")
+        statusMessage = StatusMessage.normalMessage("Submitting correction request...")
         if(mediaType == "all") {
             if(corrState.baseFolder == "") {
                 statusMessage = StatusMessage.fieldNotSetErrorMessage("Base Folder");
@@ -70,30 +70,71 @@
             endpoint = `corr/${mediaType}/${sanitizedFromFolder}/${sanitizedToFolder}/`;
         }
 
-        await makeBackendCall(endpoint, "POST", {
-            "options" : {
-                // Slides options
-                "slidesDisableCrop" : slidesDisableCrop,
-                "slidesDisableColorCorrection" : slidesDisableColorCorrection,
-                "slidesEnforceAspectRatio" : slidesEnforcedAspectRatio,
-                
-                // Prints options
-                "printsDisableCrop" : printsDisableCrop,
-                "printsDisableColorCorrection" : printsDisableColorCorrection,
-                
-                // Audio options
-                "audioSilenceThreshholdDb" : parseInt(audioSilenceThreshholdDb),
-                
-                // VHS options
-                "vhsSilenceThreshholdDb" : parseInt(vhsSilenceThreshholdDb)
-            }
-        })
-            .then(() => {
-                statusMessage = StatusMessage.successMessage("All done!")
-            })
-            .catch((e) => {
-                statusMessage = StatusMessage.errorMessage(e);
+        try {
+            // Submit the correction request
+            const responseData = await makeBackendCall(endpoint, "POST", {
+                "options" : {
+                    // Slides options
+                    "slidesDisableCrop" : slidesDisableCrop,
+                    "slidesDisableColorCorrection" : slidesDisableColorCorrection,
+                    "slidesEnforceAspectRatio" : slidesEnforcedAspectRatio,
+                    
+                    // Prints options
+                    "printsDisableCrop" : printsDisableCrop,
+                    "printsDisableColorCorrection" : printsDisableColorCorrection,
+                    
+                    // Audio options
+                    "audioSilenceThreshholdDb" : parseInt(audioSilenceThreshholdDb),
+                    
+                    // VHS options
+                    "vhsSilenceThreshholdDb" : parseInt(vhsSilenceThreshholdDb)
+                }
             });
+            
+            // Check if we have task IDs to monitor
+            if (responseData && (responseData.task_id || responseData.task_ids)) {
+                const taskIds = responseData.task_ids || [responseData.task_id];
+                const totalTasks = taskIds.length;
+                let completedTasks = 0;
+                
+                statusMessage = StatusMessage.normalMessage(`Processing ${totalTasks} task(s)... (0/${totalTasks} complete)`);
+                
+                // Monitor each task
+                for (const taskId of taskIds) {
+                    // Start polling for this task
+                    pollTaskStatus(
+                        taskId,
+                        (status: string, result?: any) => {
+                            // Update status message based on task status
+                            if (status === 'COMPLETED') {
+                                completedTasks++;
+                                statusMessage = StatusMessage.normalMessage(
+                                    `Processing ${totalTasks} task(s)... (${completedTasks}/${totalTasks} complete)`
+                                );
+                                
+                                // If all tasks are complete, show success message
+                                if (completedTasks === totalTasks) {
+                                    statusMessage = StatusMessage.successMessage("All tasks completed successfully!");
+                                }
+                            } else if (status === 'PROCESSING') {
+                                // Task is still processing
+                                statusMessage = StatusMessage.normalMessage(
+                                    `Processing ${totalTasks} task(s)... (${completedTasks}/${totalTasks} complete)`
+                                );
+                            }
+                        }
+                    ).catch((error: any) => {
+                        // Handle task failure
+                        statusMessage = StatusMessage.errorMessage(`Task failed: ${error}`);
+                    });
+                }
+            } else {
+                // No task IDs returned, assume immediate success
+                statusMessage = StatusMessage.successMessage("Request processed successfully!");
+            }
+        } catch (error) {
+            statusMessage = StatusMessage.errorMessage(String(error));
+        }
     }
 
 

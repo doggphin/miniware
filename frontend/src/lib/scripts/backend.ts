@@ -16,7 +16,7 @@ export function sanitizePartOfURI(endpoint : string) : string {
 }
 
 
-export async function makeBackendCall(endpoint : string, requestMethod : string = "GET", body : any = null) : Promise<void> {
+export async function makeBackendCall(endpoint : string, requestMethod : string = "GET", body : any = null) : Promise<any> {
     return new Promise(async(resolve, reject) => {
         let backendAddress = `${getBackendAddress()}/${endpoint}`;
 
@@ -37,7 +37,9 @@ export async function makeBackendCall(endpoint : string, requestMethod : string 
                 reject(responseJson["message"] ?? "Unknown backend error!");
             }
 
-            resolve();
+            // Parse response JSON if available
+            const responseData = await response.json().catch(() => ({}));
+            resolve(responseData);
         } catch (error) {
             if(error instanceof Error) {
                 const humanReadableErrorMessages = new Map<String, string>([
@@ -49,5 +51,36 @@ export async function makeBackendCall(endpoint : string, requestMethod : string 
 
             reject(`Unknown error occured: ${error}`);
         }
+    });
+}
+
+export async function pollTaskStatus(taskId: string, onStatusUpdate: (status: string, result?: any) => void, 
+                                    interval: number = 2000): Promise<any> {
+    return new Promise((resolve, reject) => {
+        const checkStatus = async () => {
+            try {
+                const taskData = await makeBackendCall(`corr/tasks/${taskId}/`);
+                
+                // Call the status update callback
+                onStatusUpdate(taskData.status, taskData);
+                
+                // If task is completed or failed, resolve or reject
+                if (taskData.status === 'COMPLETED') {
+                    resolve(taskData);
+                    return;
+                } else if (taskData.status === 'FAILED') {
+                    reject(taskData.error_message || 'Task failed');
+                    return;
+                }
+                
+                // Continue polling if not complete
+                setTimeout(checkStatus, interval);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        
+        // Start polling
+        checkStatus();
     });
 }

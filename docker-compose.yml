@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"  # AMQP protocol
+      - "15672:15672"  # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=miniware
+      - RABBITMQ_DEFAULT_PASS=miniware_password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - miniware-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - miniware-network
+
+  celery-worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app/shared
+    depends_on:
+      - rabbitmq
+      - redis
+    networks:
+      - miniware-network
+    environment:
+      - CELERY_BROKER_URL=amqp://miniware:miniware_password@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app
+
+volumes:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  miniware-network:
+    driver: bridge
