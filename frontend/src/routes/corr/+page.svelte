@@ -7,19 +7,19 @@
     import StatusMessageDisplay from "$lib/components/StatusMessageDisplay.svelte";
     import Button from "$lib/components/Button.svelte";
     import CheckField from "$lib/components/CheckField.svelte";
+    import Modal from "$lib/components/Modal.svelte";
+
 
     let statusMessage = $state(new StatusMessage("", ""));
     function setStatusMessage(newStatusMessage : StatusMessage) {
         statusMessage = newStatusMessage;
     }
-
     const corrState = $state({
         mediaType : "",
         fromFolder : "",
         toFolder : "",
         baseFolder : "",
     });
-
     // Slides options
     let slidesDisableCrop = $state(false);
     let slidesDisableColorCorrection = $state(false);
@@ -30,18 +30,18 @@
         "3:2",
         "1:1"
     ];
-    
     // Prints options
     let printsDisableCrop = $state(false);
     let printsDisableColorCorrection = $state(false);
-    
     // Audio options
     let audioSilenceThreshholdDb = $state("");
-    const AUDIO_DEFAULT_THRESHOLD = "30";
-    
+    const AUDIO_DEFAULT_THRESHOLD = "30"; 
     // VHS options
     let vhsSilenceThreshholdDb = $state("");
     const VHS_DEFAULT_THRESHOLD = "18";
+    // Modal state
+    let showModal = $state(false);
+
     
     async function makeCorrectRequest(mediaType : string) {
         let endpoint : string;
@@ -119,6 +119,16 @@
 
 
 <Section title="Correct Media">
+    {#snippet helpContent()}
+        <div class="help-content">
+            <p> - This feature automatically corrects different types of media for you. </p>
+            <p> - It takes files from one folder, corrects them, and saves them to another folder. </p>
+            <p> - You can choose to either do one specific kind of media, or choose "Everything" mode, which selects media for you based on file type and file names. </p>
+            <p> - In "Everything" mode, select a folder with a "Raw" and "Corrected" folder in it. All folders will be created in the "Corrected" folder for you and all files will be corrected. </p>
+            <p> - If you'd like, you can set options for how files should be corrected. </p>
+            <p> - Please note that any files being corrected MUST be on a shared drive, otherwise they can't be accessed by the correction software.</p>
+        </div>
+    {/snippet}
     <ol>
         <li><OptionsField title="Media Type" bind:optionState={corrState.mediaType} options={Object.keys(mediaTypeToCorrectionDelegate)} unselectedText="Media Type"/></li>
         
@@ -170,8 +180,11 @@
 </Section>
 
 
-
 <style>
+    .help-content {
+        text-align: left;
+    }
+
     li {
         display: block;
         margin-bottom: var(--s16);

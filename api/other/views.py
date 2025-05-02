@@ -8,6 +8,7 @@ import mimetypes
 from PIL import Image
 import mutagen
 from mwlocal.helpers import make_message
+from mwlocal.path_utils import fix_path
 
 # File extensions to process
 IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.tif', '.tiff']
@@ -146,6 +147,10 @@ def manual_final_check(request, folder_path):
     Returns:
         JSON response with analysis results
     """
+    # Fix path for cross-platform compatibility
+    folder_path = fix_path(folder_path)
+    print(f"Using folder path: {folder_path}")
+    
     # Check if folder exists
     if not os.path.exists(folder_path):
         return Response(data=make_message(f"Folder not found: {folder_path}"), status=404)
@@ -288,6 +293,10 @@ def delete_files(request, folder_path):
     Returns:
         JSON response with deletion results
     """
+    # Fix path for cross-platform compatibility
+    folder_path = fix_path(folder_path)
+    print(f"Using folder path: {folder_path}")
+    
     # Check if folder exists
     if not os.path.exists(folder_path):
         return Response(data=make_message(f"Folder not found: {folder_path}"), status=404)

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 import os
 
 from mwlocal.helpers import CustomException, make_message
+from mwlocal.path_utils import fix_path
 from corr.base_correct import BaseCorrector, CompleteCorrector, SingleFileCorrector
 from .prints import prints_correct
 from .slides import slides_correct
@@ -80,6 +81,13 @@ def correct_folder_media(request, from_folder: str, to_folder: str, media_type: 
     Returns:
         HTTP response with the result of the correction
     """
+    # Fix paths that may have lost their leading slash
+    from_folder = fix_path(from_folder)
+    to_folder = fix_path(to_folder)
+    
+    print(f"Using from folder: {from_folder}")
+    print(f"Using to folder: {to_folder}")
+    
     options = get_options_from_request(request)
     extensions, delegate = get_media_config(media_type)
     
@@ -183,6 +191,13 @@ def correct_single_media(request, file_path: str, to_folder: str, media_type: st
     Returns:
         HTTP response with the result of the correction
     """
+    # Fix paths that may have lost their leading slash
+    file_path = fix_path(file_path)
+    to_folder = fix_path(to_folder)
+    
+    print(f"Using file path: {file_path}")
+    print(f"Using to folder: {to_folder}")
+    
     options = get_options_from_request(request)
     corrector = create_single_file_corrector(file_path, to_folder, media_type, options)
     return handle_single_file_correction_response(corrector.correct_file())
@@ -222,6 +237,10 @@ def correct_all(request, project_folder : str):
     """
     print(request.body)
     try:
+        # Fix path that may have lost its leading slash
+        project_folder = fix_path(project_folder)
+        print(f"Using project folder: {project_folder}")
+        
         options = get_options_from_request(request)
         complete_corrector = CompleteCorrector(project_folder=project_folder, options=options)
         complete_corrector.correct_everything()

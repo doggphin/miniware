@@ -49,7 +49,7 @@ class BaseCorrector:
 
         tasks : List[CorrectTask] = []
         for file_name in files_to_correct:
-            full_file_path = f"{self.from_folder_path}/{file_name}"
+            full_file_path = os.path.join(self.from_folder_path, file_name)
             split_file_name = file_name.split(".")
 
             if len(split_file_name) <= 1:
@@ -142,6 +142,7 @@ class CompleteCorrector:
         try:       
             folders = os.listdir(self.project_folder)
         except Exception as e:
+            print(f"{self.project_folder} doenst exist")
             raise FolderNotFound(self.project_folder)
         
         if "Raw" not in folders:
@@ -154,7 +155,23 @@ class CompleteCorrector:
         
         tasks : List[CompleteCorrectTask] = []
         for abs_raw_subdir in abs_raw_subdirs:
-            abs_corr_folder = abs_raw_subdir.replace("\\Raw", "\\Corrected")
+            # Use platform-agnostic path handling
+            raw_path = Path(abs_raw_subdir)
+            raw_parent = raw_path.parent
+            raw_name = raw_path.name
+            
+            # Handle both cases: if we're in the Raw directory itself or in a subdirectory
+            if raw_name == "Raw":
+                abs_corr_folder = str(raw_parent / "Corrected")
+            else:
+                # For subdirectories within Raw
+                raw_grandparent = raw_parent.parent
+                if raw_parent.name == "Raw":
+                    abs_corr_folder = str(raw_grandparent / "Corrected" / raw_name)
+                else:
+                    # Fallback for other cases
+                    abs_corr_folder = str(raw_path).replace(os.path.join("Raw", ""), os.path.join("Corrected", ""))
+                    abs_corr_folder = abs_corr_folder.replace("Raw", "Corrected")
             Path(abs_corr_folder).mkdir(parents = True, exist_ok = True)
             abs_file_paths = [str(f.absolute()) for f in Path(abs_raw_subdir).iterdir() if f.is_file()]
 

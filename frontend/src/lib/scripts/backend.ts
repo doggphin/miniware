@@ -7,11 +7,18 @@ export function getBackendAddress() {
 
 
 export function sanitizePartOfURI(endpoint : string) : string {
-    console.log(endpoint);
+    console.log("Original path:", endpoint);
+    
+    // Convert all forward slashes to backslashes
+    // This avoids issues with URL routing and allows us to distinguish between
+    // Windows and Linux paths on the backend
+    endpoint = endpoint.replace(/\//g, "\\"); // Convert forward slashes to backslashes
+    
+    // Now encode special characters for URI
     endpoint = endpoint.replace(/#/g, "%23");  // Replace hashtags with %23
-    endpoint = endpoint.replace(/\//g, "%2F"); // Replace /s with %2F
-    endpoint = endpoint.replace(/\\/g, "%5C"); // replace \s with %5C
-    console.log(endpoint);
+    endpoint = endpoint.replace(/\\/g, "%5C"); // Replace backslashes with %5C
+    
+    console.log("Sanitized path:", endpoint);
     return endpoint;
 }
 
