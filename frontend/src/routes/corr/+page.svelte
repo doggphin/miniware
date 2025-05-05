@@ -11,9 +11,6 @@
 
 
     let statusMessage = $state(new StatusMessage("", ""));
-    function setStatusMessage(newStatusMessage : StatusMessage) {
-        statusMessage = newStatusMessage;
-    }
     const corrState = $state({
         mediaType : "",
         fromFolder : "",
@@ -35,12 +32,12 @@
     let printsDisableColorCorrection = $state(false);
     // Audio options
     let audioSilenceThreshholdDb = $state("");
-    const AUDIO_DEFAULT_THRESHOLD = "30"; 
+    const AUDIO_DEFAULT_THRESHOLD = "20"; 
     // VHS options
     let vhsSilenceThreshholdDb = $state("");
-    const VHS_DEFAULT_THRESHOLD = "18";
-    // Modal state
-    let showModal = $state(false);
+    const VHS_DEFAULT_THRESHOLD = "16";
+
+    let showAdvancedOptions = $state(false);
 
     
     async function makeCorrectRequest(mediaType : string) {
@@ -140,42 +137,58 @@
             <li><InputField title="Project Folder" bind:inputState={corrState.baseFolder}/></li>
         {/if}
         
-        <!-- Slides options -->
-        {#if corrState.mediaType == "Slides" || corrState.mediaType == "Everything"}
-            {#if corrState.mediaType == "Everything"}
-                <li class="section-title">Slides Options</li>
-            {/if}
-            <li><CheckField title="Disable Slides Cropping" bind:enabledState={slidesDisableCrop}/></li>
-            <li><CheckField title="Disable Slides Color Correction" bind:enabledState={slidesDisableColorCorrection}/></li>
-            <li><OptionsField title="Enforce Slides Aspect Ratio" bind:optionState={slidesEnforcedAspectRatio} options={enforcedAspectRatios} unselectedText={enforcedAspectRatios[0]}/></li>
+        {#if corrState.mediaType}
+            <li>
+                <button 
+                    type="button" 
+                    class="styled-button" 
+                    onclick={() => showAdvancedOptions = !showAdvancedOptions} 
+                    aria-expanded={showAdvancedOptions} 
+                    aria-label={showAdvancedOptions ? 'Hide Advanced Options' : 'Show Advanced Options'}>
+                    <span>{showAdvancedOptions ? 'Hide' : 'Show'} Advanced Options</span>
+                    <span class="toggle-icon">{showAdvancedOptions ? '▲' : '▼'}</span>
+                </button>
+            </li>
         {/if}
         
-        <!-- Prints options -->
-        {#if corrState.mediaType == "Prints" || corrState.mediaType == "Everything"}
-            {#if corrState.mediaType == "Everything"}
-                <li class="section-title">Prints Options</li>
+        {#if showAdvancedOptions && corrState.mediaType}
+            <!-- Slides options -->
+            {#if corrState.mediaType == "Slides" || corrState.mediaType == "Everything"}
+                {#if corrState.mediaType == "Everything"}
+                    <li class="section-title">Slides Options</li>
+                {/if}
+                <li><CheckField title="Disable Slides Cropping" bind:enabledState={slidesDisableCrop}/></li>
+                <li><CheckField title="Disable Slides Color Correction" bind:enabledState={slidesDisableColorCorrection}/></li>
+                <li><OptionsField title="Enforce Slides Aspect Ratio" bind:optionState={slidesEnforcedAspectRatio} options={enforcedAspectRatios} unselectedText={enforcedAspectRatios[0]}/></li>
             {/if}
-            <li><CheckField title="Disable Prints Cropping" bind:enabledState={printsDisableCrop}/></li>
-            <li><CheckField title="Disable Prints Color Correction" bind:enabledState={printsDisableColorCorrection}/></li>
-        {/if}
-        
-        <!-- Audio options -->
-        {#if corrState.mediaType == "Audio" || corrState.mediaType == "Everything"}
-            {#if corrState.mediaType == "Everything"}
-                <li class="section-title">Audio Options</li>
+            
+            <!-- Prints options -->
+            {#if corrState.mediaType == "Prints" || corrState.mediaType == "Everything"}
+                {#if corrState.mediaType == "Everything"}
+                    <li class="section-title">Prints Options</li>
+                {/if}
+                <li><CheckField title="Disable Prints Cropping" bind:enabledState={printsDisableCrop}/></li>
+                <li><CheckField title="Disable Prints Color Correction" bind:enabledState={printsDisableColorCorrection}/></li>
             {/if}
-            <li><InputField title="Audio Silence Threshold (dB)" bind:inputState={audioSilenceThreshholdDb} numericalOnly={true} placeholderText={`${AUDIO_DEFAULT_THRESHOLD}`}/></li>
-        {/if}
-        
-        <!-- VHS options -->
-        {#if corrState.mediaType == "Video" || corrState.mediaType == "Everything"}
-            {#if corrState.mediaType == "Everything"}
-                <li class="section-title">Video Options</li>
+            
+            <!-- Audio options -->
+            {#if corrState.mediaType == "Audio" || corrState.mediaType == "Everything"}
+                {#if corrState.mediaType == "Everything"}
+                    <li class="section-title">Audio Options</li>
+                {/if}
+                <li><InputField title="Audio Silence Threshold (dB)" bind:inputState={audioSilenceThreshholdDb} numericalOnly={true} placeholderText={`${AUDIO_DEFAULT_THRESHOLD}`}/></li>
             {/if}
-            <li><InputField title="Video Silence Threshold (dB)" bind:inputState={vhsSilenceThreshholdDb} numericalOnly={true} placeholderText={`${VHS_DEFAULT_THRESHOLD}`}/></li>
+            
+            <!-- VHS options -->
+            {#if corrState.mediaType == "Video" || corrState.mediaType == "Everything"}
+                {#if corrState.mediaType == "Everything"}
+                    <li class="section-title">Video Options</li>
+                {/if}
+                <li><InputField title="Video Silence Threshold (dB)" bind:inputState={vhsSilenceThreshholdDb} numericalOnly={true} placeholderText={`${VHS_DEFAULT_THRESHOLD}`}/></li>
+            {/if}
         {/if}
     </ol>
-    <Button text="Correct!" onClick={correct} />
+    <Button onClick={correct}>Correct!</Button>
     <StatusMessageDisplay statusMessage={statusMessage}/>
 </Section>
 
@@ -195,6 +208,26 @@
         font-size: 1.1em;
         margin-top: var(--s24);
         margin-bottom: var(--s8);
-        color: #333;
+    }
+    
+    .advanced-options-toggle {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        background-color: var(--clr-accent);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-bottom: var(--s8);
+        font-weight: 500;
+    }
+    
+    .advanced-options-toggle:hover {
+        background-color: #e9e9e9;
+    }
+    
+    .toggle-icon {
+        font-size: 12px;
+        margin-left: 8px;
     }
 </style>

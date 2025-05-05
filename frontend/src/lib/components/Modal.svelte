@@ -40,7 +40,9 @@
         {@render children?.()}
         <hr />
         <!-- svelte-ignore a11y_autofocus -->
-        <Button text="Close" onClick={() => dialog.close()} />
+        <Button onClick={() => dialog.close()}>
+			Close
+		</Button>	
     </div>
 </dialog>
 

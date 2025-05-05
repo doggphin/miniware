@@ -16,7 +16,7 @@ from corr.correction_problem import GenericProblem
 
 MIN_ALLOWED_BURST_OF_AUDIO_DURING_SILENCE_SECONDS = 1
 CLIPPED_AUDIO_PADDING_SECONDS = 3
-QUIET_THRESHHOLD = 30
+QUIET_THRESHHOLD = 20
 
 FINAL_DBFS = -3 
 
@@ -53,7 +53,7 @@ def compute_gain(y: np.ndarray, target_dbfs: float) -> float:
     return gain
 
 
-def get_start_and_end(y: np.ndarray, sr: int, silence_threshhold : int = 30) -> Tuple[int, int]:
+def get_start_and_end(y: np.ndarray, sr: int, silence_threshhold : int = 20) -> Tuple[int, int]:
     """
     Finds where a track starts and ends (with some padding).
     Returns the full range (0, len(y)) if no significant audio is detected.
@@ -82,7 +82,7 @@ def correct_audio(from_path: str, to_dir: str, options : Dict[str, any]) -> List
         options = {}
     
     # Get silence threshold option with default value
-    silence_threshold_db = options.get("audioSilenceThreshholdDb", 30)
+    silence_threshold_db = options.get("audioSilenceThreshholdDb", 20)
     
     file_name, file_extension = os.path.splitext(os.path.basename(from_path))
     to_path = os.path.join(to_dir, f"{file_name}.mp3")

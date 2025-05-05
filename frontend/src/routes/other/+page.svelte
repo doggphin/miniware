@@ -158,13 +158,22 @@
 
 
 <Section title="Folder Analysis">
+    {#snippet helpContent()}
+        <div class="help-content">
+            <p> - This feature analyzes a folder for various media types and checks for problematic files. </p>
+            <p> - It provides detailed information about the contents of the folder, including images, audio, and video files. </p>
+            <p> - You can also delete problematic files directly from this interface. </p>
+        </div>
+    {/snippet}
     <InputField 
         title="Folder Path" 
         bind:inputState={folderPath} 
         placeholderText="Folder path"
     />
     <div class="spacer"></div>
-    <Button onClick={handleManualFinalCheck} text="Analyze Folder" />
+    <Button onClick={handleManualFinalCheck}>
+        Analyze!
+    </Button>
     <div class="spacer"></div>
     <StatusMessageDisplay statusMessage={statusMessage} />
     
