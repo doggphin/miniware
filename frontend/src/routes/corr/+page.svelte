@@ -9,6 +9,9 @@
     import CheckField from "$lib/components/CheckField.svelte";
     import Modal from "$lib/components/Modal.svelte";
 
+    import ExampleCorrectionPath from "$lib/assets/example-correction-path.png";
+    import ExampleCorrectionPathPasted from "$lib/assets/example-correction-path-pasted.png";
+
 
     let statusMessage = $state(new StatusMessage("", ""));
     const corrState = $state({
@@ -20,7 +23,7 @@
     // Slides options
     let slidesDisableCrop = $state(false);
     let slidesDisableColorCorrection = $state(false);
-    let slidesEnforcedAspectRatio = $state("");
+    let slidesEnforcedAspectRatio = $state("3:2");
     const enforcedAspectRatios = [
         "Any",
         "4:3",
@@ -31,10 +34,10 @@
     let printsDisableCrop = $state(false);
     let printsDisableColorCorrection = $state(false);
     // Audio options
-    let audioSilenceThreshholdDb = $state("");
+    let audioSilenceThreshholdDb = $state("20");
     const AUDIO_DEFAULT_THRESHOLD = "20"; 
     // VHS options
-    let vhsSilenceThreshholdDb = $state("");
+    let vhsSilenceThreshholdDb = $state("16");
     const VHS_DEFAULT_THRESHOLD = "16";
 
     let showAdvancedOptions = $state(false);
@@ -67,23 +70,26 @@
             endpoint = `corr/${mediaType}/${sanitizedFromFolder}/${sanitizedToFolder}/`;
         }
 
+        // Prepare options object
+        const options = {
+            // Slides options
+            "slidesDisableCrop": slidesDisableCrop,
+            "slidesDisableColorCorrection": slidesDisableColorCorrection,
+            "slidesEnforceAspectRatio": slidesEnforcedAspectRatio,
+            
+            // Prints options
+            "printsDisableCrop": printsDisableCrop,
+            "printsDisableColorCorrection": printsDisableColorCorrection,
+            
+            // Audio options
+            "audioSilenceThreshholdDb": audioSilenceThreshholdDb ? parseInt(audioSilenceThreshholdDb) : parseInt(AUDIO_DEFAULT_THRESHOLD),
+            
+            // VHS options
+            "vhsSilenceThreshholdDb": vhsSilenceThreshholdDb ? parseInt(vhsSilenceThreshholdDb) : parseInt(VHS_DEFAULT_THRESHOLD)
+        };
+
         await makeBackendCall(endpoint, "POST", {
-            "options" : {
-                // Slides options
-                "slidesDisableCrop" : slidesDisableCrop,
-                "slidesDisableColorCorrection" : slidesDisableColorCorrection,
-                "slidesEnforceAspectRatio" : slidesEnforcedAspectRatio,
-                
-                // Prints options
-                "printsDisableCrop" : printsDisableCrop,
-                "printsDisableColorCorrection" : printsDisableColorCorrection,
-                
-                // Audio options
-                "audioSilenceThreshholdDb" : parseInt(audioSilenceThreshholdDb),
-                
-                // VHS options
-                "vhsSilenceThreshholdDb" : parseInt(vhsSilenceThreshholdDb)
-            }
+            "options": options
         })
             .then(() => {
                 statusMessage = StatusMessage.successMessage("All done!")
@@ -117,14 +123,21 @@
 
 <Section title="Correct Media">
     {#snippet helpContent()}
-        <div class="help-content">
-            <p> - This feature automatically corrects different types of media for you. </p>
-            <p> - It takes files from one folder, corrects them, and saves them to another folder. </p>
-            <p> - You can choose to either do one specific kind of media, or choose "Everything" mode, which selects media for you based on file type and file names. </p>
-            <p> - In "Everything" mode, select a folder with a "Raw" and "Corrected" folder in it. All folders will be created in the "Corrected" folder for you and all files will be corrected. </p>
-            <p> - If you'd like, you can set options for how files should be corrected. </p>
-            <p> - Please note that any files being corrected MUST be on a shared drive, otherwise they can't be accessed by the correction software.</p>
-        </div>
+        <ol class="help-content">
+            <li>- This feature automatically corrects different types of media for you.</li>
+            <li>- It takes files from one folder, corrects them, and saves them to another folder.</li>
+            <li>- To select a folder, click on the path of the folder in the File Explorer, copy it (CTRL + C) and paste it in MiniWare (CTRL + V)</li>
+            <li>
+                <img class="help-image" src={ExampleCorrectionPath} alt="How to copy absolute file paths"/>
+            </li>
+            <li>
+                <img class="help-image" src={ExampleCorrectionPathPasted} alt="How to copy absolute file paths"/>
+            </li>
+            <li>- You can choose to either do one specific kind of media, or choose "Everything" mode, which selects media for you based on file type and file names. </li>
+            <li>- In "Everything" mode, select a folder with a "Raw" and "Corrected" folder in it. All folders will be created in the "Corrected" folder for you and all files will be corrected. </li>
+            <li>- If you'd like, you can set options for how files should be corrected.</li>
+            <li>- Please note that any files being corrected MUST be on a shared drive, otherwise they can't be accessed by the correction software.</li>
+        </ol>
     {/snippet}
     <ol>
         <li><OptionsField title="Media Type" bind:optionState={corrState.mediaType} options={Object.keys(mediaTypeToCorrectionDelegate)} unselectedText="Media Type"/></li>
@@ -159,7 +172,7 @@
                 {/if}
                 <li><CheckField title="Disable Slides Cropping" bind:enabledState={slidesDisableCrop}/></li>
                 <li><CheckField title="Disable Slides Color Correction" bind:enabledState={slidesDisableColorCorrection}/></li>
-                <li><OptionsField title="Enforce Slides Aspect Ratio" bind:optionState={slidesEnforcedAspectRatio} options={enforcedAspectRatios} unselectedText={enforcedAspectRatios[0]}/></li>
+                <li><OptionsField title="Enforce Slides Aspect Ratio (3:2 is normal)" bind:optionState={slidesEnforcedAspectRatio} options={enforcedAspectRatios} unselectedText={enforcedAspectRatios[0]}/></li>
             {/if}
             
             <!-- Prints options -->
@@ -198,6 +211,12 @@
         text-align: left;
     }
 
+    .help-image {
+        max-width: 100%;
+        border: 2px solid black;
+        border-radius: var(--s8);
+    }
+
     li {
         display: block;
         margin-bottom: var(--s16);
@@ -208,22 +227,6 @@
         font-size: 1.1em;
         margin-top: var(--s24);
         margin-bottom: var(--s8);
-    }
-    
-    .advanced-options-toggle {
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        background-color: var(--clr-accent);
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        margin-bottom: var(--s8);
-        font-weight: 500;
-    }
-    
-    .advanced-options-toggle:hover {
-        background-color: #e9e9e9;
     }
     
     .toggle-icon {

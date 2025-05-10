@@ -4,7 +4,17 @@ This project serves as a temporary alternative to MemoryWare while it's still in
 
 ---
 
-## Pre-Setup instructions
+## Automatic Installation
+
+Most computers will be able to install everything using Chocolatey, a package manager for Windows. To run it, follow these steps:
+
+- Open Powershell using "Run as Administrator".
+- Run this command (on some computers, you may have to try mulitple times):
+```
+Set-ExecutionPolicy Bypass -Scope Process -Force; & "C:\Path\To\install-miniware.ps1"
+```
+
+## Manual Installation (in case automatic doesn't work)
 
 Install the following. If in the installation process you are asked if you want to add something to path, CLICK YES!
 
