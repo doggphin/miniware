@@ -6,7 +6,7 @@
     const navigationButtons = [
         ["Correct Media", "corr"],
         ["Other Tools", "other"],
-        ["Sheets FC (WIP)", "fc"],
+        //["Sheets FC (WIP)", "fc"],
     ];
 
     let { children } : { children : Snippet } = $props();

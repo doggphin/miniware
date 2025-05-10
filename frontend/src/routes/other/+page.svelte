@@ -38,6 +38,7 @@
     interface ProblematicFiles {
         "incorrect name": string[];
         "unrecognized file type": string[];
+        "non-sequential numbering": string[];
     }
 
     interface ResultData {
@@ -104,10 +105,11 @@
     }
 
     async function handleDeleteProblematicFiles() {
-        // Combine both types of problematic files
+        // Combine deleteable problematic files (excluding non-sequential numbering)
         const filesToDelete = [
             ...(results?.problematic_files['unrecognized file type'] || []),
             ...(results?.problematic_files['incorrect name'] || [])
+            // Non-sequential numbering files are not included for deletion
         ];
         
         if (!folderPath || !results || filesToDelete.length === 0) {
@@ -115,7 +117,7 @@
             return;
         }
 
-        if (!confirm('Are you sure you want to delete all problematic files (both unrecognized types and incorrect names)? This action cannot be undone.')) {
+        if (!confirm('Are you sure you want to delete problematic files (unrecognized types and incorrect names)? This action cannot be undone.')) {
             return;
         }
 
@@ -143,10 +145,11 @@
             const deleteResult = await response.json();
             statusMessage = StatusMessage.successMessage(`Successfully deleted ${deleteResult.total_deleted} files`);
             
-            // Clear the problematic files arrays to hide the problematic files section
+            // Clear only the deleteable problematic files arrays
             if (results) {
                 results.problematic_files['incorrect name'] = [];
                 results.problematic_files['unrecognized file type'] = [];
+                // Keep non-sequential numbering files visible
             }
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'An error occurred';
@@ -269,10 +272,26 @@
                         </div>
                     {/if}
                     
-                    {#if (results.problematic_files['incorrect name']?.length > 0 || results.problematic_files['unrecognized file type']?.length > 0)}
+                    {#if results.problematic_files['non-sequential numbering']?.length > 0}
+                        <div class="problem-section">
+                            <h4>Non-Sequential Numbering</h4>
+                            <ul>
+                                {#each results.problematic_files['non-sequential numbering'] as file}
+                                    <li>{file}</li>
+                                {/each}
+                            </ul>
+                        </div>
+                    {/if}
+                    
+                    {#if (results.problematic_files['incorrect name']?.length > 0 || 
+                          results.problematic_files['unrecognized file type']?.length > 0 ||
+                          results.problematic_files['non-sequential numbering']?.length > 0)}
                         <div class="action-buttons">
                             <Button onClick={handleDeleteProblematicFiles}>
-                                {`Delete All Problematic Files (${(results.problematic_files['incorrect name']?.length || 0) + (results.problematic_files['unrecognized file type']?.length || 0)})`} 
+                                {`Delete Problematic Files (${
+                                    (results.problematic_files['incorrect name']?.length || 0) + 
+                                    (results.problematic_files['unrecognized file type']?.length || 0)
+                                })`} 
                             </Button>
                         </div>
                     {/if}

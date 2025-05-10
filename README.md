@@ -6,12 +6,12 @@ This project serves as a temporary alternative to MemoryWare while it's still in
 
 ## Automatic Installation
 
-Most computers will be able to install everything using Chocolatey, a package manager for Windows. To run it, follow these steps:
+Most computers will be able to install everything using Chocolatey, a package manager for Windows. I wrote a script that can automate installing Chocolatey and all the Chocolatey dependencies for this project. To run it, follow these steps:
 
 - Open Powershell using "Run as Administrator".
 - Run this command (on some computers, you may have to try mulitple times):
 ```
-Set-ExecutionPolicy Bypass -Scope Process -Force; & "C:\Path\To\install-miniware.ps1"
+Set-ExecutionPolicy Bypass -Scope Process -Force; & "C:\Path\To\auto-install.ps1"
 ```
 
 ## Manual Installation (in case automatic doesn't work)
