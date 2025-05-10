@@ -1,13 +1,15 @@
 <script lang="ts">
+    import type { Snippet } from "svelte";
+
     interface Props {
-        text: string,
-        onClick : Function
+        onClick : Function,
+        children : Snippet
     };
 
-    let { text, onClick } : Props = $props();
+    let { onClick, children } : Props = $props();
 </script>
 
 
 <button class="styled-button clickable" onclick={() => onClick()}>
-    {text}
+    {@render children?.()}
 </button>

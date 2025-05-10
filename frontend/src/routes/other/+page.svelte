@@ -7,6 +7,9 @@
     import Section from '$lib/components/Section.svelte';
     import StatusMessageDisplay from '$lib/components/StatusMessageDisplay.svelte';
 
+    import ExampleAnalyzePath from "$lib/assets/example-analyze-path.png";
+    import ExampleAnalyzePathPasted from "$lib/assets/example-analyze-path-pasted.png";
+
     // Define interfaces for the response data structure
     interface ImageData {
         normal_count: number;
@@ -158,13 +161,29 @@
 
 
 <Section title="Folder Analysis">
+    {#snippet helpContent()}
+        <ol class="help-content">
+            <li>- This feature analyzes a folder for various media types and checks for problematic files. </li>
+            <li>- To use this, copy the path to a folder in the below box. </li>
+            <li>
+                <img class="help-image" src={ExampleAnalyzePath} alt="How to copy absolute file paths"/>
+            </li>
+            <li>
+                <img class="help-image" src={ExampleAnalyzePathPasted} alt="How to copy absolute file paths"/>
+            </li>
+            <li>- It provides detailed information about the contents of the folder, including images, audio, and video files. </li>
+            <li>- You can also delete problematic files directly from this interface. </li>
+        </ol>
+    {/snippet}
     <InputField 
         title="Folder Path" 
         bind:inputState={folderPath} 
         placeholderText="Folder path"
     />
     <div class="spacer"></div>
-    <Button onClick={handleManualFinalCheck} text="Analyze Folder" />
+    <Button onClick={handleManualFinalCheck}>
+        Analyze!
+    </Button>
     <div class="spacer"></div>
     <StatusMessageDisplay statusMessage={statusMessage} />
     
@@ -252,10 +271,9 @@
                     
                     {#if (results.problematic_files['incorrect name']?.length > 0 || results.problematic_files['unrecognized file type']?.length > 0)}
                         <div class="action-buttons">
-                            <Button 
-                                onClick={handleDeleteProblematicFiles} 
-                                text={`Delete All Problematic Files (${(results.problematic_files['incorrect name']?.length || 0) + (results.problematic_files['unrecognized file type']?.length || 0)})`} 
-                            />
+                            <Button onClick={handleDeleteProblematicFiles}>
+                                {`Delete All Problematic Files (${(results.problematic_files['incorrect name']?.length || 0) + (results.problematic_files['unrecognized file type']?.length || 0)})`} 
+                            </Button>
                         </div>
                     {/if}
                 </div>
@@ -339,12 +357,30 @@
     }
     
     li {
-        margin-bottom: 5px;
+        display: block;
+        margin-bottom: var(--s16);
+    }
+
+    .help-content {
+        text-align: left;
+    }
+
+    .help-image {
+        max-width: 100%;
+        border: 2px solid black;
+        border-radius: var(--s8);
     }
     
     .action-buttons {
         margin-top: 15px;
         display: flex;
         justify-content: flex-end;
+    }
+
+    .centered-annotation {
+        width: 100%;
+        font-style: italic;
+        box-sizing: border-box;
+        margin-top: var(--s4);
     }
 </style>

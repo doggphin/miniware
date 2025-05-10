@@ -21,7 +21,7 @@ def correct_vhs(from_path : str, to_dir : str, options: Dict[str, any]) -> List[
         options = {}
     
     # Get silence threshold option with default value
-    silence_threshold_db = options.get("vhsSilenceThreshholdDb", 18)
+    silence_threshold_db = options.get("vhsSilenceThreshholdDb", 16)
     
     file_name, file_extension = os.path.splitext(os.path.basename(from_path))
     to_path = os.path.join(to_dir, f"{file_name}{file_extension}")

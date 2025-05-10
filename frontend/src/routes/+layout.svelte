@@ -4,15 +4,15 @@
     import type { Snippet } from 'svelte';
 
     const navigationButtons = [
-        ["Final Check", "fc"],
         ["Correct Media", "corr"],
-        ["Other Tools", "other"]
+        ["Other Tools", "other"],
+        ["Sheets FC (WIP)", "fc"],
     ];
 
     let { children } : { children : Snippet } = $props();
 </script>
 
-
+    
 {#snippet navButton(name : string, url : string)}
     <a href={`/${url}`} class="noselect styled-button">
         {name}

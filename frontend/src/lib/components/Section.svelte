@@ -13,7 +13,11 @@
     <div class="title">
         <h1>{title}</h1>
         {#if helpContent != undefined}
-            <Button onClick={() => {showHelp = true; }} text="?"/>
+            <Button onClick={() => {showHelp = true; }}>
+                <div style="margin-top: -5px;">
+                    ?
+                </div>
+            </Button>
             <Modal bind:showModal={showHelp}>
                 {#snippet header()}
                     <h2>{title}</h2>
