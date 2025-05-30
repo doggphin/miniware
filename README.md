@@ -31,6 +31,8 @@ git clone https://github.com/doggphin/miniware.git
 
 ## Setup Instructions
 
+- Open the miniware folder in your file explorer.
+
 - Run `install.bat` on Windows or `install.sh` on Linux to do install dependencies (only required once).
 
 - Run `start.bat` on Windows or `start.sh` on Linux to start MiniWare.
